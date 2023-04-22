@@ -2,6 +2,7 @@
   "name": "jonnoel.dev",
   "version": "1.0.0",
   "dependencies": {
+    "firebase": "^9.20.0",
     "gifler": "^0.1.0",
     "next": "^13.3.1",
     "react": "^18.2.0",
