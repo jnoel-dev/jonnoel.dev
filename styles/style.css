@@ -3,17 +3,17 @@ body {
   height: 100vh;
   background: #33CCCC; 
   animation: color 240s infinite linear;
-
+  animation-direction: alternate-reverse;
 
 }
 
 @keyframes color {
   0%   { background: #61567d }
-  20%  { background: #8c76be; }
-  40%  { background: #9085d0; }
-  60%  { background: #af7fc2; }
-  80%  { background: #ea92ab; }
-  100% { background: #f4c4d4; }
+  20%  { background: #8c76be }
+  40%  { background: #9085d0 }
+  60%  { background: #af7fc2 }
+  80%  { background: #ea92ab }
+  100% { background: #f4c4d4 }
 }
 
 canvas {
