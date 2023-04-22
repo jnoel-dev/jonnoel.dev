@@ -4,7 +4,7 @@
    .      * .        .          * .       */
    const STAR_COLOR = '#fff';
    const STAR_SIZE = 3;
-   const STAR_MIN_SCALE = 0.2;
+   const STAR_MIN_SCALE = 5;
    const OVERFLOW_THRESHOLD = 50;
    const STAR_COUNT = ( window.innerWidth + window.innerHeight ) / 8;
    
@@ -162,7 +162,6 @@
        context.beginPath();
        context.lineCap = 'round';
        context.lineWidth = STAR_SIZE * star.z * scale;
-       context.globalAlpha = 0.5 + 0.5*Math.random();
        context.strokeStyle = STAR_COLOR;
    
        context.beginPath();
