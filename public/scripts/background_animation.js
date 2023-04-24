@@ -1,8 +1,9 @@
 const STAR_COLOR = '#fff';
 const STAR_SIZE = 3;
-const STAR_MIN_SCALE = 5;
+const STAR_MIN_SCALE = 2;
 const OVERFLOW_THRESHOLD = 50;
-const STAR_COUNT = 20;
+//const STAR_COUNT = 50;
+const STAR_COUNT = ( window.innerWidth + window.innerHeight ) / 32;
 
 
 
@@ -93,60 +94,11 @@ function placeStar( star ) {
     });
   });
 
+
   canvas.add(star.fabObj);
 
 }
 
-function recycleStar( star ) {
-
-  let direction = 'z';
-
-  let vx = Math.abs( velocity.x ),
-        vy = Math.abs( velocity.y );
-
-  if( vx > 1 || vy > 1 ) {
-    let axis;
-
-    if( vx > vy ) {
-      axis = Math.random() < vx / ( vx + vy ) ? 'h' : 'v';
-    }
-    else {
-      axis = Math.random() < vy / ( vx + vy ) ? 'v' : 'h';
-    }
-
-    if( axis === 'h' ) {
-      direction = velocity.x > 0 ? 'l' : 'r';
-    }
-    else {
-      direction = velocity.y > 0 ? 't' : 'b';
-    }
-  }
-  
-  star.z = STAR_MIN_SCALE + Math.random() * ( 1 - STAR_MIN_SCALE );
-
-  if( direction === 'z' ) {
-    star.z = 0.1;
-    star.x = Math.random() * width;
-    star.y = Math.random() * height;
-  }
-  else if( direction === 'l' ) {
-    star.x = -OVERFLOW_THRESHOLD;
-    star.y = height * Math.random();
-  }
-  else if( direction === 'r' ) {
-    star.x = width + OVERFLOW_THRESHOLD;
-    star.y = height * Math.random();
-  }
-  else if( direction === 't' ) {
-    star.x = width * Math.random();
-    star.y = -OVERFLOW_THRESHOLD;
-  }
-  else if( direction === 'b' ) {
-    star.x = width * Math.random();
-    star.y = height + OVERFLOW_THRESHOLD;
-  }
-
-}
 
 function resize() {
   
@@ -202,15 +154,14 @@ function update() {
     star.y += ( star.y - height/2 ) * velocity.z * star.z * star.pushVal;
     //star.z += velocity.z;
   
-    // recycle when out of bounds
-    if( star.x < -OVERFLOW_THRESHOLD || star.x > width + OVERFLOW_THRESHOLD || star.y < -OVERFLOW_THRESHOLD || star.y > height + OVERFLOW_THRESHOLD ) {
-      recycleStar( star );
-    }
 
-    
+
+
     star.fabObj.left = star.x;
     star.fabObj.top = star.y;
     star.fabObj.setCoords();
+    
+
   
 
 
