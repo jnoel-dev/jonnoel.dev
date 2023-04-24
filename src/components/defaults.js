@@ -1,6 +1,6 @@
 import Script from 'next/script';
 import Head from 'next/head';
-import Background from '../components/background/background';
+import Background from './background/background';
 
 export default function Defaults() {
   return (
