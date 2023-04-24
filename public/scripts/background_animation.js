@@ -1,9 +1,9 @@
 const STAR_COLOR = '#fff';
 const STAR_SIZE = 3;
-const STAR_MIN_SCALE = 2;
+const STAR_MIN_SCALE = 1;
 const OVERFLOW_THRESHOLD = 50;
-//const STAR_COUNT = 50;
-const STAR_COUNT = ( window.innerWidth + window.innerHeight ) / 32;
+const STAR_COUNT = 50;
+//const STAR_COUNT = ( window.innerWidth + window.innerHeight ) / 32;
 
 
 
@@ -24,6 +24,8 @@ let velocity = { x: 0, y: 0, tx: 0, ty: 0, z: 0 };
 
 let touchInput = false;
 
+let imagesDoneLoading = false;
+
 generate();
 resize();
 step();
@@ -37,31 +39,104 @@ step();
 window.onresize = resize;
 
 
+canvas.on('object:added', function(object) {
+  if (canvas.getObjects().length == STAR_COUNT){
+    console.log("DONE LOADING");
 
+    
+    for( let k = 0; k < canvas.getObjects().length; k++ ) {
+      stars[k].fabObj = canvas.getObjects()[k];
+      stars[k].fabObj.left = stars[k].x;
+      stars[k].fabObj.top = stars[k].y;
+      stars[k].fabObj.scaleX = stars[k].z;
+      stars[k].fabObj.scaleY = stars[k].z;
+
+      stars[k].fabObj.on('mouseover',function onMouseOver( event ) {
+
+        stars[k].fabObj.animate('scaleX', stars[k].z * 1.5,{
+        duration: 100
+      });
+      stars[k].fabObj.animate('scaleY', stars[k].z * 1.5,{
+        duration: 100
+      });
+
+    });
+    stars[k].fabObj.on('mouseout',function onMouseOut( event ) {
+      stars[k].fabObj.animate('scaleX', stars[k].z,{
+        duration: 100
+      });
+      stars[k].fabObj.animate('scaleY', stars[k].z,{
+        duration: 100
+      });
+    });
+
+    }
+   
+    console.log(stars);
+    imagesDoneLoading = true;
+
+  }
+  
+  // Do something here
+});
 function generate() {
 
-  for( let i = 0; i < STAR_COUNT; i++ ) {
+  for( let k = 0; k < STAR_COUNT; k++ ) {
     
-    const rect = new fabric.Rect({
-      top: 0,
-      left: 0,
-      width: 20,
-      height: 20,
-      originX: 'center',
-      originY: 'center',
-      fill: 'red',
-    });
-   
-
+    // const rect = new fabric.Rect({
+    //   top: 0,
+    //   left: 0,
+    //   width: 20,
+    //   height: 20,
+    //   originX: 'center',
+    //   originY: 'center',
+    //   fill: 'red',
+    // });
+    
     stars.push({
       x: 0,
       y: 0,
-      z: STAR_MIN_SCALE + Math.random() * ( 1 - STAR_MIN_SCALE ),
-      pushVal: 1,
-      fabObj: rect
+      z: Math.random() * STAR_MIN_SCALE,
+      fabObj: ''
+      
     });
+
+    fabric.Sprite.fromURL('/images/star.png', createSprite(k));
+    
+
+    
+
+
   }
 
+
+
+
+}
+
+function createSprite(k) {
+  return function(sprite) {
+    sprite.set({
+      top: 0,
+      left: 0,
+      originX: 'center',
+      originY: 'center'
+
+    });
+    canvas.add(sprite);
+
+  
+
+
+
+
+    
+    setTimeout(function() {
+      sprite.set('dirty', true);
+      sprite.play();
+    }, fabric.util.getRandomInt(1, 10) * 100);
+    
+  };
 }
 
 
@@ -70,37 +145,48 @@ function placeStar( star ) {
 
   star.x = Math.random() * width;
   star.y = Math.random() * height;
-  star.fabObj.left = star.x;
-  star.fabObj.top = star.y;
-  star.fabObj.scaleX = star.z;
-  star.fabObj.scaleY = star.z;
-
-  star.fabObj.on('mouseover',function onMouseOver( event ) {
-
-    star.fabObj.animate('scaleX', star.z * 1.5,{
-      duration: 100
-    });
-    star.fabObj.animate('scaleY', star.z * 1.5,{
-      duration: 100
-    });
-
-  });
-  star.fabObj.on('mouseout',function onMouseOut( event ) {
-    star.fabObj.animate('scaleX', star.z,{
-      duration: 100
-    });
-    star.fabObj.animate('scaleY', star.z,{
-      duration: 100
-    });
-  });
 
 
-  canvas.add(star.fabObj);
+  
+ 
+
+
+
+
+
+
+  // star.fabObj.on('mouseover',function onMouseOver( event ) {
+
+  //   star.fabObj.animate('scaleX', star.z * 1.5,{
+  //     duration: 100
+  //   });
+  //   star.fabObj.animate('scaleY', star.z * 1.5,{
+  //     duration: 100
+  //   });
+
+  // });
+  // star.fabObj.on('mouseout',function onMouseOut( event ) {
+  //   star.fabObj.animate('scaleX', star.z,{
+  //     duration: 100
+  //   });
+  //   star.fabObj.animate('scaleY', star.z,{
+  //     duration: 100
+  //   });
+  // });
+
+
+
+
+  //canvas.add(star.fabObj);
+
+
 
 }
 
 
 function resize() {
+
+  imagesDoneLoading = false;
   
   scale = window.devicePixelRatio || 1;
 
@@ -119,15 +205,20 @@ function resize() {
 function step() {
 
 
+  if(imagesDoneLoading){
+    update();
+    
+  }
   
-  update();
   
 
-  requestAnimationFrame( step );
+ 
 
   
 
   canvas.requestRenderAll();
+
+  fabric.util.requestAnimFrame(step);
 
 
 
@@ -150,8 +241,8 @@ function update() {
     star.x += velocity.x * star.z;
     star.y += velocity.y * star.z;
 
-    star.x += ( star.x - width/2 ) * velocity.z * star.z * star.pushVal;
-    star.y += ( star.y - height/2 ) * velocity.z * star.z * star.pushVal;
+    star.x += ( star.x - width/2 ) * velocity.z * star.z;
+    star.y += ( star.y - height/2 ) * velocity.z * star.z;
     //star.z += velocity.z;
   
 
