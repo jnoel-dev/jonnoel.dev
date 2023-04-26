@@ -1,3 +1,9 @@
 body{
     margin: 0px;
+    --global-color1:#f4c4d4;
+    --global-color2:#ea92ab;
+    --global-color3:#af7fc2;
+    --global-color4:#9085d0;
+    --global-color5:#8c76be;
+    --global-color6:#61567d;
 }

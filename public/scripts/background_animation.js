@@ -1,6 +1,4 @@
-const STAR_COLOR = "#fff";
-const STAR_SIZE = 3;
-const STAR_MIN_SCALE = 1;
+const STAR_MIN_SCALE = .75;
 const OVERFLOW_THRESHOLD = 50;
 const STAR_COUNT = 50;
 //const STAR_COUNT = ( window.innerWidth + window.innerHeight ) / 32;
@@ -34,7 +32,7 @@ window.onresize = resize;
 
 canvas.on("object:added", function (object) {
   if (canvas.getObjects().length == STAR_COUNT) {
-    console.log("DONE LOADING");
+  
 
     for (let k = 0; k < canvas.getObjects().length; k++) {
       stars[k].fabObj = canvas.getObjects()[k];
@@ -42,7 +40,10 @@ canvas.on("object:added", function (object) {
       stars[k].fabObj.top = stars[k].y;
       stars[k].fabObj.scaleX = stars[k].z;
       stars[k].fabObj.scaleY = stars[k].z;
-      stars[k].fabObj.selectable = false;
+      stars[k].fabObj.selectable = true;
+      stars[k].fabObj.hasControls = false;
+      stars[k].fabObj.hasBorders = false;
+     
 
       stars[k].fabObj.on("mouseover", function onMouseOver(event) {
         canvas.hoverCursor = "default";
@@ -61,9 +62,22 @@ canvas.on("object:added", function (object) {
           duration: 100,
         });
       });
+      stars[k].fabObj.on("mousedown", function onMouseDown(event) {
+        //canvas.hoverCursor = "default";
+        canvas.moveCursor = "default";
+        stars[k].dragEventFiring = true;
+       
+      });
+      stars[k].fabObj.on("mouseup", function onMouseUp(event) {
+        //canvas.hoverCursor = "default";
+        stars[k].dragEventFiring = false;
+        stars[k].x = stars[k].fabObj.left;
+        stars[k].y = stars[k].fabObj.top;
+  
+      });
     }
 
-    console.log(stars);
+
     imagesDoneLoading = true;
   }
 
@@ -86,6 +100,7 @@ function generate() {
       y: 0,
       z: Math.random() * STAR_MIN_SCALE,
       fabObj: "",
+      dragEventFiring: false
     });
 
     fabric.Sprite.fromURL(
@@ -140,6 +155,7 @@ function step() {
 }
 
 function update() {
+
   velocity.tx *= 0.96;
   velocity.ty *= 0.96;
 
@@ -147,16 +163,21 @@ function update() {
   velocity.y += (velocity.ty - velocity.y) * 0.8;
 
   stars.forEach((star) => {
-    star.x += velocity.x * star.z;
-    star.y += velocity.y * star.z;
+    if (!star.dragEventFiring){
 
-    star.x += (star.x - width / 2) * velocity.z * star.z;
-    star.y += (star.y - height / 2) * velocity.z * star.z;
-    //star.z += velocity.z;
+      star.x += velocity.x * star.z;
+      star.y += velocity.y * star.z;
+  
+      star.x += (star.x - width / 2) * velocity.z * star.z;
+      star.y += (star.y - height / 2) * velocity.z * star.z;
+      //star.z += velocity.z;
+  
+      star.fabObj.left = star.x;
+      star.fabObj.top = star.y;
+      star.fabObj.setCoords();
 
-    star.fabObj.left = star.x;
-    star.fabObj.top = star.y;
-    star.fabObj.setCoords();
+    }
+
   });
 }
 

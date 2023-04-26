@@ -4,7 +4,7 @@ export default function Document() {
   return (
     <Html>
       <Head />
-      <body className="custom_layout">
+      <body id="main_body">
         <Main />
         <NextScript />
       </body>
