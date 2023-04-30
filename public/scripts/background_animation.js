@@ -1,6 +1,6 @@
-const STAR_MIN_SCALE = .75;
+const STAR_MIN_SCALE = .5;
 const OVERFLOW_THRESHOLD = 50;
-const STAR_COUNT = 50;
+const STAR_COUNT = 100;
 //const STAR_COUNT = ( window.innerWidth + window.innerHeight ) / 32;
 
 const canvas = new fabric.Canvas("canvas");
@@ -19,7 +19,7 @@ let velocity = { x: 0, y: 0, tx: 0, ty: 0, z: 0 };
 let touchInput = false;
 
 let imagesDoneLoading = false;
-
+document.onmousemove = handleMouseMove;
 canvas.selection = false;
 generate();
 resize();
@@ -193,24 +193,8 @@ function movePointer(x, y) {
   pointerX = x;
   pointerY = y;
 }
-
-canvas.on("mouse:move", function onMouseMove(event) {
+function handleMouseMove(event){
   touchInput = false;
+  movePointer(event.pageX, event.pageY);
+}
 
-  movePointer(event.pointer.x, event.pointer.y);
-});
-
-// function onTouchMove( event ) {
-
-//   touchInput = true;
-
-//   movePointer( event.touches[0].clientX, event.touches[0].clientY, true );
-
-//   event.preventDefault();
-
-// }
-
-canvas.on("mouse:out", function onMouseLeave() {
-  pointerX = null;
-  pointerY = null;
-});

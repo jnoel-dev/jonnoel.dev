@@ -2,7 +2,9 @@ import Script from 'next/script';
 import Head from 'next/head';
 import Background from './background/background';
 
-export default function Defaults() {
+export default function Defaults(props) {
+
+
   return (
     <>
     <Head>
@@ -20,7 +22,9 @@ export default function Defaults() {
         `}
     </Script>
     
-    <Background/>
+    <Background>
+    {props.children}
+    </Background>
   </>
   )
 }

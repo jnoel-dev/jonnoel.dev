@@ -1,51 +1,32 @@
 import styles from './background.module.css';
 import Script from 'next/script';
+import resolveConfig from 'tailwindcss/resolveConfig';
+import tailwindConfig from '../../../tailwind.config';
 
-export default function Background() {
+const fullConfig = resolveConfig(tailwindConfig);
 
- 
+export default function Background(props) {
+
+
+  
   return (
+    <>
     <div className={styles.background} id="background">
 
-      <Script>
-        {`
-            animationTimer();
-            function animationTimer(){
-              setTimeout(animationTimer,60000);
-              
-              if (document.getElementById("background").style.animationPlayState === 'running'){
-                document.getElementById("background").style.animationPlayState = 'paused';
-              }
-              else{
-                document.getElementById("background").style.animationPlayState = 'running';
-              }
 
-            }
-            
-        `}
-      </Script>
+
       
-      <canvas id="canvas" className={styles.canvas} ></canvas>
+      <canvas id="canvas" ></canvas>
 
-        
+            
         <Script strategy="beforeInteractive" src="/scripts/fabric.min.js"></Script>
         <Script strategy="beforeInteractive" src="/scripts/sprite.class.js"></Script>
-
-        
         <Script src="/scripts/background_animation.js"> </Script>
 
         <Script>
         {`
-          let globalColors = [];
-          globalColors.push(window.getComputedStyle(document.getElementById("main_body")).getPropertyValue('--global-color1'));
-          globalColors.push(window.getComputedStyle(document.getElementById("main_body")).getPropertyValue('--global-color2'));
-          globalColors.push(window.getComputedStyle(document.getElementById("main_body")).getPropertyValue('--global-color3'));
-          globalColors.push(window.getComputedStyle(document.getElementById("main_body")).getPropertyValue('--global-color4'));
-          globalColors.push(window.getComputedStyle(document.getElementById("main_body")).getPropertyValue('--global-color5'));
-          globalColors.push(window.getComputedStyle(document.getElementById("main_body")).getPropertyValue('--global-color6'));
-          localStorage.setItem('test',globalColors);
-
-          let colorval = hexToRgb(window.getComputedStyle(document.getElementById("main_body")).getPropertyValue('--global-color1'));
+          console.log(${JSON.stringify(fullConfig.theme.colors.globalColor1)});
+          let colorval = hexToRgb(${JSON.stringify(fullConfig.theme.colors.globalColor1)});
           let finalval = \`url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"><defs><filter id="689d94" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 \${colorval.r} 0 0 0 0 \${colorval.g} 0 0 0 0 \${colorval.b} 0 0 0 1 0"/></filter></defs></svg>#689d94')\`
           document.getElementById("canvas").style.filter = finalval;
           
@@ -61,7 +42,10 @@ export default function Background() {
           
         `}
       </Script>
+      
 
     </div>
+    {props.children}
+    </>
   )
 }
