@@ -2,6 +2,50 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  margin: 0px;
+html, body, #__next{
+  height: 100%;
+  margin: 0;
+  justify-content: center;
+  display: flex;
+}
+
+
+@layer utilities{
+
+
+  .card-wrapper {
+    @apply bg-globalColor6 h-[400px] w-[400px] relative overflow-hidden; 
+  }
+
+  .card-wrapper::before {
+
+    margin:auto;
+
+    background: conic-gradient(
+      theme('colors.globalColor1'),
+      theme('colors.globalColor2'),
+      theme('colors.globalColor3'),
+      theme('colors.globalColor4'),
+      theme('colors.globalColor5'),
+      theme('colors.globalColor4'),
+      theme('colors.globalColor3'),
+      theme('colors.globalColor2'),
+      theme('colors.globalColor1')
+    );
+
+    /* Positioning */
+    @apply absolute h-[150%] w-[150%] content-[''] left-[-25%] top-[-25%] animate-border-spin;
+
+    
+  }
+
+  .card-content{
+
+    @apply absolute bg-globalColor1 w-[calc(100%-16px)] h-[calc(100%-16px)] top-[8px] left-[8px];
+
+    justify-content: center;
+    text-align: center;
+    display: flex;
+  }
+
 }

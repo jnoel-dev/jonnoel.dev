@@ -11,13 +11,13 @@ const DitherMaterial = shaderMaterial(
     globalColor5: new THREE.Color(tailwindConfig.theme.colors.globalColor5),
     globalColor6: new THREE.Color(tailwindConfig.theme.colors.globalColor6),
 
-    time: 0.0, // 🔥 Animation control
-    mousePosition: new THREE.Vector2(0.5, 0.5), // 🔥 Mouse interaction
-    mouseIntensity: 0.1, // 🔥 Controls how much the mouse distorts the haze
-    colorIntensity: 1.0, // 🔥 Controls color vibrancy
-    ditherSize: 512.0, // 🔥 Controls dither pattern scale
-    hazeAmount: 2.0, // 🔥 Controls amount of haze on screen
-    resolution: new THREE.Vector2(1.0, 1.0), // Screen resolution (fixed scaling)
+    time: 0.0, 
+    mousePosition: new THREE.Vector2(0.5, 0.5), 
+    mouseIntensity: 0.1, 
+    colorIntensity: 1.0, 
+    ditherSize: 512.0, 
+    hazeAmount: 2.0, 
+    resolution: new THREE.Vector2(1.0, 1.0), 
   },
   `
     varying vec2 vScreenUv;
@@ -52,30 +52,25 @@ const DitherMaterial = shaderMaterial(
     uniform vec2 mousePosition;
     uniform vec2 resolution;
 
-    // 🔥 Correct Dither Scaling for Widescreens
     vec2 fixAspectRatio(vec2 uv) {
         float aspectRatio = resolution.x / resolution.y;
         return vec2(uv.x * aspectRatio, uv.y);
     }
 
-    // 🔥 Smooth Sinusoidal Flow for Organic Motion
     float fluidMotion(vec2 uv, float speed, float scale, float strength) {
         return sin(uv.y * scale + time * speed + sin(uv.x * scale * 0.8 + time * speed * 0.5)) * strength;
     }
 
-    // 🔥 Swirling Flow Fields to Create Dynamic Movement
     vec2 swirlingFlow(vec2 uv, float speed, float scale, float strength) {
         float angle = sin(uv.x * scale + time * speed) * strength;
         return vec2(cos(angle), sin(angle)) * 0.1;
     }
 
-    // 🔥 Mouse Interaction - Creates Subtle Distortion
     float mouseWarp(vec2 uv, vec2 mouse, float intensity) {
         float dist = distance(uv, mouse);
         return exp(-dist * 8.0) * intensity; // Strongest near cursor, fades smoothly
     }
 
-    // 🔥 Ordered Bayer Dithering (4x4 Bayer Matrix)
     float bayerDither(vec2 uv) {
         int x = int(mod(uv.x, 4.0));
         int y = int(mod(uv.y, 4.0));
@@ -90,33 +85,26 @@ const DitherMaterial = shaderMaterial(
     }
 
     void main() {
-        // 🔥 Fix aspect ratio to prevent stretching
+
         vec2 aspectCorrectedUv = fixAspectRatio(vScreenUv);
 
-        // 🔥 Background color (Color6 dominates, NO DITHER)
         vec3 baseColor = globalColor6;
 
-        // 🔥 Create fluid motion using sinusoidal waves
         float flow1 = fluidMotion(aspectCorrectedUv, 0.6, 6.0, 0.3);
         float flow2 = fluidMotion(aspectCorrectedUv * 1.3, -0.8, 9.0, 0.25);
         float flow3 = fluidMotion(aspectCorrectedUv * 0.9, 0.5, 12.0, 0.2);
 
-        // 🔥 Swirling effect to make the haze constantly move and evolve
         vec2 swirl1 = swirlingFlow(aspectCorrectedUv, 0.5, 4.0, 1.2);
         vec2 swirl2 = swirlingFlow(aspectCorrectedUv * 1.1, -0.4, 6.0, 0.8);
 
-        // 🔥 Mouse Interaction - Warping Effect
         float mouseEffect = mouseWarp(aspectCorrectedUv, mousePosition, mouseIntensity);
 
-        // 🔥 Combine all effects into a flowing, vibrant haze
         float hazePattern = flow1 * 0.4 + flow2 * 0.3 + flow3 * 0.3 + dot(swirl1 + swirl2, vec2(0.5, 0.5)) + mouseEffect;
         hazePattern = clamp(hazePattern * hazeAmount, 0.0, 1.0); // Apply Haze Amount Scaling
 
-        // 🔥 Ensure All Colors Appear & Adjust Vibrancy
         hazePattern = pow(hazePattern, 1.1);
         hazePattern *= colorIntensity;
 
-        // 🔥 Blend Haze Colors (Using Colors 1-5)
         float stepSize = 1.0 / 5.0;
         vec3 hazeColor;
         if (hazePattern < stepSize) {
@@ -131,7 +119,6 @@ const DitherMaterial = shaderMaterial(
             hazeColor = globalColor5;
         }
 
-        // 🔥 Apply Bayer Dithering ONLY to Haze (Not Background)
         float ditherThreshold = bayerDither(aspectCorrectedUv * ditherSize);
         float ditherMask = step(ditherThreshold, hazePattern);
         float applyDither = smoothstep(0.1, 0.8, hazePattern); // Dithering fades in as haze gets stronger
