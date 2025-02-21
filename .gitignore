@@ -5,3 +5,5 @@ node_modules/
 .firebaserc
 firebase.json
 firebase-debug.log
+.vscode/launch.json
+.vscode/settings.json

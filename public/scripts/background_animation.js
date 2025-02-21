@@ -1,4 +1,4 @@
-const STAR_MIN_SCALE = .5;
+const STAR_MIN_SCALE = 0.5;
 const OVERFLOW_THRESHOLD = 50;
 const STAR_COUNT = 100;
 //const STAR_COUNT = ( window.innerWidth + window.innerHeight ) / 32;
@@ -32,8 +32,6 @@ window.onresize = resize;
 
 canvas.on("object:added", function (object) {
   if (canvas.getObjects().length == STAR_COUNT) {
-  
-
     for (let k = 0; k < canvas.getObjects().length; k++) {
       stars[k].fabObj = canvas.getObjects()[k];
       stars[k].fabObj.left = stars[k].x;
@@ -43,7 +41,6 @@ canvas.on("object:added", function (object) {
       stars[k].fabObj.selectable = true;
       stars[k].fabObj.hasControls = false;
       stars[k].fabObj.hasBorders = false;
-     
 
       stars[k].fabObj.on("mouseover", function onMouseOver(event) {
         canvas.hoverCursor = "default";
@@ -66,17 +63,14 @@ canvas.on("object:added", function (object) {
         //canvas.hoverCursor = "default";
         canvas.moveCursor = "default";
         stars[k].dragEventFiring = true;
-       
       });
       stars[k].fabObj.on("mouseup", function onMouseUp(event) {
         //canvas.hoverCursor = "default";
         stars[k].dragEventFiring = false;
         stars[k].x = stars[k].fabObj.left;
         stars[k].y = stars[k].fabObj.top;
-  
       });
     }
-
 
     imagesDoneLoading = true;
   }
@@ -100,12 +94,12 @@ function generate() {
       y: 0,
       z: Math.random() * STAR_MIN_SCALE,
       fabObj: "",
-      dragEventFiring: false
+      dragEventFiring: false,
     });
 
     fabric.Sprite.fromURL(
       "/images/star" + (Math.floor(Math.random() * 4) + 1).toString() + ".png",
-      createSprite(k)
+      createSprite(k),
     );
   }
 }
@@ -120,10 +114,13 @@ function createSprite(k) {
     });
     canvas.add(sprite);
 
-    setTimeout(function () {
-      sprite.set("dirty", true);
-      sprite.play();
-    }, fabric.util.getRandomInt(1, 10) * 100);
+    setTimeout(
+      function () {
+        sprite.set("dirty", true);
+        sprite.play();
+      },
+      fabric.util.getRandomInt(1, 10) * 100,
+    );
   };
 }
 
@@ -155,7 +152,6 @@ function step() {
 }
 
 function update() {
-
   velocity.tx *= 0.96;
   velocity.ty *= 0.96;
 
@@ -163,21 +159,18 @@ function update() {
   velocity.y += (velocity.ty - velocity.y) * 0.8;
 
   stars.forEach((star) => {
-    if (!star.dragEventFiring){
-
+    if (!star.dragEventFiring) {
       star.x += velocity.x * star.z;
       star.y += velocity.y * star.z;
-  
+
       star.x += (star.x - width / 2) * velocity.z * star.z;
       star.y += (star.y - height / 2) * velocity.z * star.z;
       //star.z += velocity.z;
-  
+
       star.fabObj.left = star.x;
       star.fabObj.top = star.y;
       star.fabObj.setCoords();
-
     }
-
   });
 }
 
@@ -193,8 +186,7 @@ function movePointer(x, y) {
   pointerX = x;
   pointerY = y;
 }
-function handleMouseMove(event){
+function handleMouseMove(event) {
   touchInput = false;
   movePointer(event.pageX, event.pageY);
 }
-
