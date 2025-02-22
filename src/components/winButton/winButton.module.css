@@ -1,9 +1,10 @@
 .winButton {
 
-  color: black;
-  background-color: #c0c0c0;
+  color: color-mix(in srgb, theme("colors.globalColor6") 50% , black);
+
+  background-color: theme("colors.globalColor1");
   width: 100px;
-  height: 30px;
+  height: 40px;
   padding: 0;
   border: none;
   position: relative;
@@ -23,7 +24,7 @@
 }
 
 .winButton:active {
-  background-color: #b0b0b0;
+  background-color: theme("colors.globalColor2");
 
   border-top: 4px solid #2b2b2b;
   border-left: 4px solid #2b2b2b;
