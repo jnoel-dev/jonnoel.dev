@@ -2,9 +2,9 @@
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useRef, useState, useEffect } from "react";
-import { DitherMaterial } from "./shaders/ditherShader";
+import { DitherMaterial } from "../../shaders/ditherShader";
 import { extend } from "@react-three/fiber";
-import tailwindConfig from "../../tailwind.config";
+import tailwindConfig from "../../../tailwind.config";
 
 extend({ DitherMaterial });
 

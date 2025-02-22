@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'cozette';
+  src: url('/fonts/CozetteVector.ttf') format('truetype');
+}
+
 html,
 body,
 #__next {
@@ -11,6 +16,8 @@ body,
   display: flex;
   flex-wrap: wrap;
   align-content: center;
+  font-family: cozette;
+  font-size: 18px;
 }
 
 @layer utilities {

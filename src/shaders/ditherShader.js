@@ -1,6 +1,6 @@
 import { shaderMaterial } from "@react-three/drei";
 import * as THREE from "three";
-import tailwindConfig from "../../../tailwind.config";
+import tailwindConfig from "../../tailwind.config";
 
 const DitherMaterial = shaderMaterial(
   {

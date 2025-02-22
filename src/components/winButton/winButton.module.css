@@ -1,0 +1,33 @@
+.winButton {
+
+  color: black;
+  background-color: #c0c0c0;
+  width: 100px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  position: relative;
+  cursor: pointer;
+  outline: none;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-top: 4px solid #ffffff;
+  border-left: 4px solid #ffffff;
+  border-bottom: 4px solid #2b2b2b;
+  border-right: 4px solid #2b2b2b;
+
+ 
+}
+
+.winButton:active {
+  background-color: #b0b0b0;
+
+  border-top: 4px solid #2b2b2b;
+  border-left: 4px solid #2b2b2b;
+  border-bottom: 4px solid #ffffff;
+  border-right: 4px solid #ffffff;
+
+}

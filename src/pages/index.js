@@ -6,7 +6,7 @@ function HomePage() {
     <>
       <Defaults />
 
-      <Panel height={100} width={500} />
+      <Panel width={"auto"} height={"auto"}  />
     </>
   );
 }
