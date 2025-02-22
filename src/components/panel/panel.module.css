@@ -1,15 +1,13 @@
-
-
 .panel {
+  width: auto;
+  height: auto;
   margin: 0;
-  position: relative;
+  position: absolute; /* Allows free movement */
   display: flex;
   justify-content: center;
   align-items: center;
 
-  
+  /* Initial state: fully clipped (hidden) */
+  clip-path: inset(0% 0% 100% 0%);
+  overflow: hidden;
 }
-
-
-
-

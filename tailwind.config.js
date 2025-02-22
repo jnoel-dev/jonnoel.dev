@@ -19,17 +19,16 @@ module.exports = {
       globalColor6: "#61567d",
     },
     extend: {
-      keyframes:{
-        'border-spin':{
-          '100%':{
-            transform: 'rotate(-360deg)'
-
+      keyframes: {
+        "border-spin": {
+          "100%": {
+            transform: "rotate(-360deg)",
           },
         },
       },
       animation: {
-        'border-spin': 'border-spin 7s linear infinite'
-      }
+        "border-spin": "border-spin 2s linear infinite",
+      },
     },
   },
   plugins: [],

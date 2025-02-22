@@ -11,13 +11,13 @@ const DitherMaterial = shaderMaterial(
     globalColor5: new THREE.Color(tailwindConfig.theme.colors.globalColor5),
     globalColor6: new THREE.Color(tailwindConfig.theme.colors.globalColor6),
 
-    time: 0.0, 
-    mousePosition: new THREE.Vector2(0.5, 0.5), 
-    mouseIntensity: 0.1, 
-    colorIntensity: 1.0, 
-    ditherSize: 512.0, 
-    hazeAmount: 2.0, 
-    resolution: new THREE.Vector2(1.0, 1.0), 
+    time: 0.0,
+    mousePosition: new THREE.Vector2(0.5, 0.5),
+    mouseIntensity: 0.1,
+    colorIntensity: 1.0,
+    ditherSize: 512.0,
+    hazeAmount: 2.0,
+    resolution: new THREE.Vector2(1.0, 1.0),
   },
   `
     varying vec2 vScreenUv;

@@ -10,7 +10,7 @@ extend({ DitherMaterial });
 
 function FullscreenPlane() {
   const ref = useRef();
-  const { viewport, size } = useThree(); 
+  const { viewport, size } = useThree();
   const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
 
   useEffect(() => {
@@ -18,7 +18,7 @@ function FullscreenPlane() {
       const aspectRatio = size.width / size.height;
 
       const x = event.clientX / size.width;
-      const y = 1.0 - event.clientY / size.height; 
+      const y = 1.0 - event.clientY / size.height;
 
       const correctedX = x * aspectRatio;
 

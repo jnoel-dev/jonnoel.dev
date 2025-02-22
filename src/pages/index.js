@@ -4,11 +4,9 @@ import Panel from "../components/panel/panel";
 function HomePage() {
   return (
     <>
-      <Defaults/>
+      <Defaults />
 
-        <Panel />
-
-
+      <Panel height={100} width={500} />
     </>
   );
 }
