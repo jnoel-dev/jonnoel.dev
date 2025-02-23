@@ -117,12 +117,24 @@ export default function Panel({ height, width, children }) {
   useEffect(() => {
     if (isDragging) {
       const handleMouseMove = (e) => {
-        const newX = e.clientX - offset.x;
-        const newY = e.clientY - offset.y;
-
-        panelRef.current.style.left = `${newX}px`;
-        panelRef.current.style.top = `${newY}px`;
+        if (!panelRef.current) return;
+      
+        const panel = panelRef.current;
+        const rect = panel.getBoundingClientRect();
+      
+        const newX = Math.min(
+          window.innerWidth - rect.width,
+          Math.max(0, e.clientX - offset.x)
+        );
+        const newY = Math.min(
+          window.innerHeight - rect.height,
+          Math.max(0, e.clientY - offset.y)
+        );
+      
+        panel.style.left = `${newX}px`;
+        panel.style.top = `${newY}px`;
       };
+      
 
       const handleMouseUp = () => {
         setIsDragging(false);
@@ -144,31 +156,24 @@ export default function Panel({ height, width, children }) {
 
       const animateFloating = () => {
         if (!panelRef.current) return;
-
+      
         const panel = panelRef.current;
         const rect = panel.getBoundingClientRect();
-
+      
         const currentX = rect.left;
         const currentY = rect.top;
-
-        const newX = Math.max(
-          currentX - 60,
-          Math.min(currentX + 60, currentX + Math.random() * 60),
-        );
-        const newY = Math.max(
-          currentY - 60,
-          Math.min(currentY + 60, currentY + Math.random() * 60),
-        );
-
+      
+        const maxX = window.innerWidth - rect.width;
+        const maxY = window.innerHeight - rect.height;
+      
+        const newX = Math.max(0, Math.min(maxX, currentX + (Math.random() * 60 - 30)));
+        const newY = Math.max(0, Math.min(maxY, currentY + (Math.random() * 60 - 30)));
+      
         const currentRotation = parseFloat(
-          panel.style.transform.match(/rotateZ\((-?\d+(?:\.\d+)?)deg\)/)?.[1] ||
-            "0",
+          panel.style.transform.match(/rotateZ\((-?\d+(?:\.\d+)?)deg\)/)?.[1] || "0"
         );
-        const newRotation = Math.max(
-          -15,
-          Math.min(15, currentRotation + (Math.random() * 6 - 3)),
-        );
-
+        const newRotation = Math.max(-15, Math.min(15, currentRotation + (Math.random() * 6 - 3)));
+      
         anime({
           targets: panel,
           translateX: newX - rect.left,
@@ -181,6 +186,7 @@ export default function Panel({ height, width, children }) {
           complete: animateFloating,
         });
       };
+      
 
       animateFloating();
 
