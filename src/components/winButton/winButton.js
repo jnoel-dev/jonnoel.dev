@@ -1,8 +1,19 @@
 import React, { useState } from "react";
 import styles from "./winButton.module.css"; // Import CSS Module
+import { useRouter } from "next/router";
 
-export default function WinButton({ children, onClick }) {
+export default function WinButton({ children, href, onClick }) {
   const [isPressed, setIsPressed] = useState(false);
+  const router = useRouter();
+
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+    } else if (href) {
+      router.push(href);
+    }
+  };
+
 
   return (
     <button
@@ -10,7 +21,7 @@ export default function WinButton({ children, onClick }) {
       onMouseDown={() => setIsPressed(true)}
       onMouseUp={() => setIsPressed(false)}
       onMouseLeave={() => setIsPressed(false)}
-      onClick={onClick}
+      onClick={handleClick}
     >
       {children}
     </button>

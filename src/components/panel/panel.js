@@ -10,6 +10,7 @@ export default function Panel({ height, width, children }) {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
   const [isAnimationComplete, setIsAnimationComplete] = useState(false);
+  const hasRendered = useRef(false);
 
   useLayoutEffect(() => {
     const calculateSize = () => {
@@ -28,12 +29,16 @@ export default function Panel({ height, width, children }) {
 
           setSize({ width: maxWidth, height: maxHeight });
         }
+        hasRendered.current = true;
       });
     };
+    
+    if (!hasRendered.current){
+      calculateSize();
+    }
+    
 
-    calculateSize();
-
-    return () => window.removeEventListener("resize", calculateSize);
+    return;
   }, [width, height, children]);
 
   useEffect(() => {
@@ -152,7 +157,6 @@ export default function Panel({ height, width, children }) {
 
   useEffect(() => {
     if (!isHovered && !isDragging) {
-      console.log("overriding scale with transform");
 
       const animateFloating = () => {
         if (!panelRef.current) return;
