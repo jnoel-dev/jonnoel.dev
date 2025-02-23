@@ -1,7 +1,8 @@
 .winButton {
 
-  color: color-mix(in srgb, theme("colors.globalColor6") 50% , black);
-
+  
+  color: color-mix(in srgb, theme("colors.globalColor1") 0% , white);
+  font-size: 18px;
   background-color: theme("colors.globalColor1");
   width: 100px;
   height: 40px;

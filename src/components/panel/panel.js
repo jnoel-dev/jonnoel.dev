@@ -135,7 +135,7 @@ export default function Panel({ height, width, children }) {
         }}
       >
         <div
-          className={`card-content absolute bg-globalColor1 
+          className={`card-content absolute bg-globalColor1
             ${width === "auto" ? "w-max" : "w-[calc(100%-8px)]"} 
             ${height === "auto" ? "h-max" : "h-[calc(100%-24px)]"} 
             top-[20px] left-[4px] ${styles.cardContent}`}

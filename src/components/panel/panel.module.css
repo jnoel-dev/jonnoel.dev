@@ -14,8 +14,7 @@
 }
 
 .cardContent {
-  display: flex;
-  flex-direction: row;
+
   flex-shrink: 0;
   text-align: center;
   font-family: cozette;

@@ -18,8 +18,9 @@ body,
   flex-wrap: wrap;
   align-content: center;
   font-family: cozette;
-  font-size: 18px;
+  font-size: 24px;
   user-select: none;
+  color: color-mix(in srgb, theme("colors.globalColor6") 50% , black);
 
 }
 
