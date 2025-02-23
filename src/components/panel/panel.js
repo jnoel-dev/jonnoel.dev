@@ -177,6 +177,7 @@ export default function Panel({ height, width, children }) {
           easing: "easeInOutQuad",
           duration: Math.random() * 3000 + 3000,
           loop: false,
+          delay: 3000,
           complete: animateFloating,
         });
       };
