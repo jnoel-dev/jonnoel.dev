@@ -1,4 +1,4 @@
-.h1{
-    color: color-mix(in srgb, theme("colors.globalColor1") 50% , white);
-    overflow: hidden;
+.h1 {
+  color: color-mix(in srgb, theme("colors.globalColor1") 50%, white);
+  overflow: hidden;
 }

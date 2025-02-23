@@ -9,13 +9,13 @@ function HomePage() {
       <Defaults />
 
       <Panel width={"auto"} height={"auto"}>
-          <h1 className={styles.h1}>───────── w e l c o m e ─────────</h1>
-          <div className="flex items-center justify-center gap-2">
+        <h1 className={styles.h1}>───────── w e l c o m e ─────────</h1>
+        <div className="flex items-center justify-center gap-2">
           <WinButton>about</WinButton>
           <WinButton>projects</WinButton>
           <WinButton>more</WinButton>
-          </div>
-          <h1 className={styles.h1}>──────────── ⋆⋅☆⋅⋆ ─────────────</h1>
+        </div>
+        <h1 className={styles.h1}>──────────── ⋆⋅☆⋅⋆ ─────────────</h1>
       </Panel>
     </>
   );

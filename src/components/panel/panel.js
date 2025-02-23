@@ -9,6 +9,7 @@ export default function Panel({ height, width, children }) {
   const [isDragging, setIsDragging] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
+  const [isAnimationComplete, setIsAnimationComplete] = useState(false);
 
   useLayoutEffect(() => {
     const calculateSize = () => {
@@ -17,7 +18,9 @@ export default function Panel({ height, width, children }) {
           let maxWidth = width;
           let maxHeight = height;
 
-          const contentRect = panelRef.current.querySelector(`.${styles.cardContent}`)?.getBoundingClientRect();
+          const contentRect = panelRef.current
+            .querySelector(`.${styles.cardContent}`)
+            ?.getBoundingClientRect();
           if (contentRect) {
             maxWidth = width === "auto" ? contentRect.width + 8 : width;
             maxHeight = height === "auto" ? contentRect.height + 24 : height;
@@ -35,12 +38,17 @@ export default function Panel({ height, width, children }) {
 
   useEffect(() => {
     if (panelRef.current) {
-      anime({
+      setIsAnimationComplete(false);
+
+      const animation = anime({
         targets: panelRef.current,
         clipPath: ["inset(0% 0% 100% 0%)", "inset(0% 0% 0% 0%)"],
         easing: "easeOutExpo",
         duration: 800,
         delay: 1000,
+        complete: () => {
+          setIsAnimationComplete(true);
+        },
       });
 
       const centerPanel = () => {
@@ -60,131 +68,138 @@ export default function Panel({ height, width, children }) {
       setTimeout(centerPanel, 50);
 
       window.addEventListener("resize", centerPanel);
-      return () => window.removeEventListener("resize", centerPanel);
+      return () => {
+        animation.pause();
+        window.removeEventListener("resize", centerPanel);
+      };
     }
   }, []);
 
+  const handleMouseEnter = () => {
+    if (!isAnimationComplete) return;
+
+    setIsHovered(true);
+    anime({
+      targets: panelRef.current,
+      scale: 1.05,
+      duration: 100,
+      easing: "easeOutQuad",
+    });
+  };
+
+  const handleMouseLeave = () => {
+    if (isDragging) return;
+
+    anime({
+      targets: panelRef.current,
+      scale: 1.0,
+      duration: 100,
+      easing: "easeOutQuad",
+      complete: () => {
+        setIsHovered(false);
+      },
+    });
+  };
+
+  const handleMouseDown = (e) => {
+    if (!isAnimationComplete || !dragZoneRef.current.contains(e.target)) return;
+
+    anime.remove(panelRef.current);
+    setIsDragging(true);
+
+    const computedStyle = window.getComputedStyle(panelRef.current);
+    const left = parseFloat(computedStyle.left || 0);
+    const top = parseFloat(computedStyle.top || 0);
+
+    setOffset({ x: e.clientX - left, y: e.clientY - top });
+  };
+
   useEffect(() => {
-    const handleMouseMove = (e) => {
-      if (!isDragging) return;
-
-      // Move panel instantly with cursor
-      const newX = e.clientX - offset.x;
-      const newY = e.clientY - offset.y;
-
-      panelRef.current.style.left = `${newX}px`;
-      panelRef.current.style.top = `${newY}px`;
-    };
-
-    const handleMouseUp = () => {
-      setIsDragging(false);
-
-      // Reset wobbly effect after dragging stops
-
-    };
-
     if (isDragging) {
+      const handleMouseMove = (e) => {
+        const newX = e.clientX - offset.x;
+        const newY = e.clientY - offset.y;
+
+        panelRef.current.style.left = `${newX}px`;
+        panelRef.current.style.top = `${newY}px`;
+      };
+
+      const handleMouseUp = () => {
+        setIsDragging(false);
+      };
+
       window.addEventListener("mousemove", handleMouseMove);
       window.addEventListener("mouseup", handleMouseUp);
-    } else {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    }
 
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
+      return () => {
+        window.removeEventListener("mousemove", handleMouseMove);
+        window.removeEventListener("mouseup", handleMouseUp);
+      };
+    }
   }, [isDragging, offset]);
 
   useEffect(() => {
     if (!isHovered && !isDragging) {
-      console.log("overriding scale with trasform")
+      console.log("overriding scale with transform");
+
       const animateFloating = () => {
         if (!panelRef.current) return;
-  
+
         const panel = panelRef.current;
-        const rect = panel.getBoundingClientRect(); // Get the panel’s current position
-  
-        // Get the panel's current position relative to the viewport
+        const rect = panel.getBoundingClientRect();
+
         const currentX = rect.left;
         const currentY = rect.top;
-  
-        // Generate new values while clamping within limits
-        const newX = Math.max(currentX - 120, Math.min(currentX + 120, currentX + (Math.random() * 120)));
-        const newY = Math.max(currentY - 120, Math.min(currentY + 120, currentY + (Math.random() * 120)));
-  
-        // Get the current rotation value
-        const currentRotation = parseFloat(panel.style.transform.match(/rotateZ\((-?\d+(?:\.\d+)?)deg\)/)?.[1] || "0");
-        const newRotation = Math.max(-15, Math.min(15, currentRotation + (Math.random() * 6 - 3)));
-  
+
+        const newX = Math.max(
+          currentX - 60,
+          Math.min(currentX + 60, currentX + Math.random() * 60),
+        );
+        const newY = Math.max(
+          currentY - 60,
+          Math.min(currentY + 60, currentY + Math.random() * 60),
+        );
+
+        const currentRotation = parseFloat(
+          panel.style.transform.match(/rotateZ\((-?\d+(?:\.\d+)?)deg\)/)?.[1] ||
+            "0",
+        );
+        const newRotation = Math.max(
+          -15,
+          Math.min(15, currentRotation + (Math.random() * 6 - 3)),
+        );
+
         anime({
           targets: panel,
-          translateX: newX - rect.left, // Translate relative to its current position
+          translateX: newX - rect.left,
           translateY: newY - rect.top,
           rotateZ: newRotation,
           easing: "easeInOutQuad",
-          duration: 3000,
+          duration: Math.random() * 3000 + 3000,
           loop: false,
-          complete: animateFloating, // Continue animation
+          complete: animateFloating,
         });
       };
-  
+
       animateFloating();
-  
-      return () => anime.remove(panelRef.current); // Cleanup on re-renders
+
+      return () => anime.remove(panelRef.current);
     }
   }, [isHovered, isDragging]);
-  
 
-
-  const handleMouseDown = (e) => {
-    if (!dragZoneRef.current.contains(e.target)) return;
-  
-    anime.remove(panelRef.current);
-    setIsDragging(true);
-  
-    const computedStyle = window.getComputedStyle(panelRef.current);
-    const left = parseFloat(computedStyle.left || 0);
-    const top = parseFloat(computedStyle.top || 0);
-  
-    setOffset({ x: e.clientX - left, y: e.clientY - top });
-  };
-  
-  
   useEffect(() => {
     if (isHovered) {
       anime.remove(panelRef.current);
       anime({
         targets: panelRef.current,
-        rotateZ: 0, // Reset rotation on hover
-        scale: 1.05, // Scale up
+        rotateZ: 0,
+        scale: 1.05,
         duration: 100,
         easing: "easeOutQuad",
+        complete: () => setIsAnimationComplete(true),
       });
-    } 
-  }, [isHovered]);
-
-  const handleMouseEnter = () => {
-    setIsHovered(true);
-  
-  };
-
-  const handleMouseLeave = () => {
-   
-    anime.remove(panelRef.current);
-    anime({
-      targets: panelRef.current,
-      rotateZ: 0, // Reset rotation on hover
-      scale: 1.0, // Scale up
-      duration: 100,
-      easing: "easeOutQuad",
-      complete: leavingDone
-    });
-    function leavingDone(){
-      setIsHovered(false);
     }
-  };
+  }, [isHovered]);
 
   const maxSize = Math.max(size.height, size.width);
   return (
@@ -194,8 +209,6 @@ export default function Panel({ height, width, children }) {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      
-
       <div
         className="card-wrapper bg-globalColor6 relative overflow-hidden before:absolute before:content-[''] before:animate-border-spin"
         style={{
@@ -216,7 +229,11 @@ export default function Panel({ height, width, children }) {
           {children}
         </div>
       </div>
-      <div ref={dragZoneRef} className={styles.dragZone} onMouseDown={handleMouseDown}></div>
+      <div
+        ref={dragZoneRef}
+        className={styles.dragZone}
+        onMouseDown={handleMouseDown}
+      ></div>
     </div>
   );
 }

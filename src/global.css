@@ -3,9 +3,8 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: 'cozette';
-  src: url('/fonts/CozetteVector.ttf') format('truetype');
-
+  font-family: "cozette";
+  src: url("/fonts/CozetteVector.ttf") format("truetype");
 }
 
 html,
@@ -20,8 +19,7 @@ body,
   font-family: cozette;
   font-size: 24px;
   user-select: none;
-  color: color-mix(in srgb, theme("colors.globalColor6") 50% , black);
-
+  color: color-mix(in srgb, theme("colors.globalColor6") 50%, black);
 }
 
 @layer utilities {
