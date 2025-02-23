@@ -1,7 +1,6 @@
 import Script from "next/script";
 import Head from "next/head";
 import Background from "./background/background";
-import HomePanel from "./homePanel/homePanel";
 
 export default function Defaults(props) {
   return (
@@ -26,7 +25,7 @@ export default function Defaults(props) {
 
       <Background>{props.children}</Background>
       
-      <HomePanel />
+      
     </>
   );
 }

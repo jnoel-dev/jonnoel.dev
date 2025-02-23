@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import styles from "./winButton.module.css"; // Import CSS Module
 import { useRouter } from "next/router";
 
-export default function WinButton({ children, href, onClick }) {
+export default function WinButton({ children, href, onClick, connectedPanelId }) {
   const [isPressed, setIsPressed] = useState(false);
   const router = useRouter();
 

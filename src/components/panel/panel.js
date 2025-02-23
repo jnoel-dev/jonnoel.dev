@@ -11,6 +11,8 @@ export default function Panel({ height, width, children }) {
   const [isHovered, setIsHovered] = useState(false);
   const [isAnimationComplete, setIsAnimationComplete] = useState(false);
   const hasRendered = useRef(false);
+  const animationRef = useRef(null);
+  const animationTimeoutRef = useRef(null);
 
   useLayoutEffect(() => {
     const calculateSize = () => {
@@ -157,44 +159,61 @@ export default function Panel({ height, width, children }) {
 
   useEffect(() => {
     if (!isHovered && !isDragging) {
-
       const animateFloating = () => {
         if (!panelRef.current) return;
-      
+
         const panel = panelRef.current;
         const rect = panel.getBoundingClientRect();
-      
-        const currentX = rect.left;
-        const currentY = rect.top;
-      
+
         const maxX = window.innerWidth - rect.width;
         const maxY = window.innerHeight - rect.height;
-      
-        const newX = Math.max(0, Math.min(maxX, currentX + (Math.random() * 60 - 30)));
-        const newY = Math.max(0, Math.min(maxY, currentY + (Math.random() * 60 - 30)));
-      
+
+        const newX = Math.max(0, Math.min(maxX, rect.left + (Math.random() * 60 - 30)));
+        const newY = Math.max(0, Math.min(maxY, rect.top + (Math.random() * 60 - 30)));
+
         const currentRotation = parseFloat(
           panel.style.transform.match(/rotateZ\((-?\d+(?:\.\d+)?)deg\)/)?.[1] || "0"
         );
         const newRotation = Math.max(-15, Math.min(15, currentRotation + (Math.random() * 6 - 3)));
-      
-        anime({
+
+        // Stop previous animation if it exists
+        if (animationRef.current) {
+          animationRef.current.pause();
+        }
+
+        // Start new animation
+        animationRef.current = anime({
           targets: panel,
           translateX: newX - rect.left,
           translateY: newY - rect.top,
           rotateZ: newRotation,
-          easing: "easeInOutQuad",
+          easing: "linear",
           duration: Math.random() * 3000 + 3000,
           loop: false,
-          delay: 3000,
-          complete: animateFloating,
         });
+
+        // Force stop the animation mid-way and restart it
+        if (animationTimeoutRef.current) {
+          clearTimeout(animationTimeoutRef.current);
+        }
+        animationTimeoutRef.current = setTimeout(() => {
+          if (animationRef.current) {
+            animationRef.current.pause(); // Stop animation mid-motion
+            animateFloating(); // Restart immediately
+          }
+        }, Math.random() * 1500 + 1500); // Stops before the full duration
       };
-      
 
       animateFloating();
 
-      return () => anime.remove(panelRef.current);
+      return () => {
+        if (animationRef.current) {
+          animationRef.current.pause();
+        }
+        if (animationTimeoutRef.current) {
+          clearTimeout(animationTimeoutRef.current);
+        }
+      };
     }
   }, [isHovered, isDragging]);
 
