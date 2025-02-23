@@ -8,6 +8,7 @@ export default function Panel({ height, width, children }) {
   const [size, setSize] = useState({ width, height });
   const [isDragging, setIsDragging] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [isHovered, setIsHovered] = useState(false);
 
   useLayoutEffect(() => {
     const calculateSize = () => {
@@ -47,7 +48,7 @@ export default function Panel({ height, width, children }) {
         requestAnimationFrame(() => {
           if (panelRef.current) {
             const rect = panelRef.current.getBoundingClientRect();
-            if (rect.width > 0 && rect.height > 0) { // Ensure panel is fully rendered
+            if (rect.width > 0 && rect.height > 0) {
               const centerX = (window.innerWidth - rect.width) / 2;
               const centerY = (window.innerHeight - rect.height) / 2;
               panelRef.current.style.left = `${centerX}px`;
@@ -57,7 +58,7 @@ export default function Panel({ height, width, children }) {
         });
       };
 
-      setTimeout(centerPanel, 50); // Small delay ensures panel is fully rendered
+      setTimeout(centerPanel, 50);
 
       window.addEventListener("resize", centerPanel);
       return () => window.removeEventListener("resize", centerPanel);
@@ -67,11 +68,21 @@ export default function Panel({ height, width, children }) {
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (!isDragging) return;
-      panelRef.current.style.left = `${e.clientX - offset.x}px`;
-      panelRef.current.style.top = `${e.clientY - offset.y}px`;
+
+      // Move panel instantly with cursor
+      const newX = e.clientX - offset.x;
+      const newY = e.clientY - offset.y;
+
+      panelRef.current.style.left = `${newX}px`;
+      panelRef.current.style.top = `${newY}px`;
     };
 
-    const handleMouseUp = () => setIsDragging(false);
+    const handleMouseUp = () => {
+      setIsDragging(false);
+
+      // Reset wobbly effect after dragging stops
+
+    };
 
     if (isDragging) {
       window.addEventListener("mousemove", handleMouseMove);
@@ -87,40 +98,87 @@ export default function Panel({ height, width, children }) {
     };
   }, [isDragging, offset]);
 
+  useEffect(() => {
+    if (!isHovered && !isDragging) {
+      const animateFloating = () => {
+        if (!panelRef.current) return;
+  
+        const panel = panelRef.current;
+        const rect = panel.getBoundingClientRect(); // Get the panel’s current position
+  
+        // Get the panel's current position relative to the viewport
+        const currentX = rect.left;
+        const currentY = rect.top;
+  
+        // Generate new values while clamping within limits
+        const newX = Math.max(currentX - 60, Math.min(currentX + 60, currentX + (Math.random() * 60)));
+        const newY = Math.max(currentY - 60, Math.min(currentY + 60, currentY + (Math.random() * 60)));
+  
+        // Get the current rotation value
+        const currentRotation = parseFloat(panel.style.transform.match(/rotateZ\((-?\d+(?:\.\d+)?)deg\)/)?.[1] || "0");
+        const newRotation = Math.max(-15, Math.min(15, currentRotation + (Math.random() * 6 - 3)));
+  
+        anime({
+          targets: panel,
+          translateX: newX - rect.left, // Translate relative to its current position
+          translateY: newY - rect.top,
+          rotateZ: newRotation,
+          easing: "easeInOutQuad",
+          duration: 6000,
+          loop: false,
+          complete: animateFloating, // Continue animation
+        });
+      };
+  
+      animateFloating();
+  
+      return () => anime.remove(panelRef.current); // Cleanup on re-renders
+    }
+  }, [isHovered, isDragging]);
+  
+  useEffect(() => {
+    if (isHovered) {
+      anime({
+        targets: panelRef.current,
+        rotateZ: 0, // Reset rotation on hover
+        scale: 1.05, // Scale up
+        duration: 100,
+        easing: "easeOutQuad",
+      });
+    } 
+  }, [isHovered]);
   const handleMouseDown = (e) => {
-    // Only allow dragging if clicked inside the top 20px
     if (!dragZoneRef.current.contains(e.target)) return;
-
-    anime.remove(panelRef.current); // Stop hover animation immediately
+  
+    anime.remove(panelRef.current);
     setIsDragging(true);
-
-    const rect = panelRef.current.getBoundingClientRect();
-    setOffset({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  
+    const computedStyle = window.getComputedStyle(panelRef.current);
+    const left = parseFloat(computedStyle.left || 0);
+    const top = parseFloat(computedStyle.top || 0);
+  
+    setOffset({ x: e.clientX - left, y: e.clientY - top });
   };
+  
+  
 
   const handleMouseEnter = () => {
-    if (!isDragging) {
-      anime({ targets: panelRef.current, scale: 1.05, duration: 50, easing: "easeOutQuad" });
-    }
+    setIsHovered(true);
+    anime.remove(panelRef.current);
   };
 
   const handleMouseLeave = () => {
-    if (!isDragging) {
-      anime({ targets: panelRef.current, scale: 1, duration: 50, easing: "easeOutQuad" });
-    }
+    setIsHovered(false);
   };
 
   const maxSize = Math.max(size.height, size.width);
-
   return (
     <div
       className={styles.panel}
       ref={panelRef}
-      onMouseDown={handleMouseDown}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Drag Zone - Only This Area is Clickable for Dragging */}
       
 
       <div
@@ -143,7 +201,7 @@ export default function Panel({ height, width, children }) {
           {children}
         </div>
       </div>
-      <div ref={dragZoneRef} className={styles.dragZone}></div>
+      <div ref={dragZoneRef} className={styles.dragZone} onMouseDown={handleMouseDown}></div>
     </div>
   );
 }
