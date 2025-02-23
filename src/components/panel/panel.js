@@ -29,7 +29,6 @@ export default function Panel({ height, width, children }) {
     };
 
     calculateSize();
-    window.addEventListener("resize", calculateSize);
 
     return () => window.removeEventListener("resize", calculateSize);
   }, [width, height, children]);
@@ -100,6 +99,7 @@ export default function Panel({ height, width, children }) {
 
   useEffect(() => {
     if (!isHovered && !isDragging) {
+      console.log("overriding scale with trasform")
       const animateFloating = () => {
         if (!panelRef.current) return;
   
@@ -111,8 +111,8 @@ export default function Panel({ height, width, children }) {
         const currentY = rect.top;
   
         // Generate new values while clamping within limits
-        const newX = Math.max(currentX - 60, Math.min(currentX + 60, currentX + (Math.random() * 60)));
-        const newY = Math.max(currentY - 60, Math.min(currentY + 60, currentY + (Math.random() * 60)));
+        const newX = Math.max(currentX - 120, Math.min(currentX + 120, currentX + (Math.random() * 120)));
+        const newY = Math.max(currentY - 120, Math.min(currentY + 120, currentY + (Math.random() * 120)));
   
         // Get the current rotation value
         const currentRotation = parseFloat(panel.style.transform.match(/rotateZ\((-?\d+(?:\.\d+)?)deg\)/)?.[1] || "0");
@@ -124,7 +124,7 @@ export default function Panel({ height, width, children }) {
           translateY: newY - rect.top,
           rotateZ: newRotation,
           easing: "easeInOutQuad",
-          duration: 6000,
+          duration: 3000,
           loop: false,
           complete: animateFloating, // Continue animation
         });
@@ -136,17 +136,8 @@ export default function Panel({ height, width, children }) {
     }
   }, [isHovered, isDragging]);
   
-  useEffect(() => {
-    if (isHovered) {
-      anime({
-        targets: panelRef.current,
-        rotateZ: 0, // Reset rotation on hover
-        scale: 1.05, // Scale up
-        duration: 100,
-        easing: "easeOutQuad",
-      });
-    } 
-  }, [isHovered]);
+
+
   const handleMouseDown = (e) => {
     if (!dragZoneRef.current.contains(e.target)) return;
   
@@ -161,14 +152,38 @@ export default function Panel({ height, width, children }) {
   };
   
   
+  useEffect(() => {
+    if (isHovered) {
+      anime.remove(panelRef.current);
+      anime({
+        targets: panelRef.current,
+        rotateZ: 0, // Reset rotation on hover
+        scale: 1.05, // Scale up
+        duration: 100,
+        easing: "easeOutQuad",
+      });
+    } 
+  }, [isHovered]);
 
   const handleMouseEnter = () => {
     setIsHovered(true);
-    anime.remove(panelRef.current);
+  
   };
 
   const handleMouseLeave = () => {
-    setIsHovered(false);
+   
+    anime.remove(panelRef.current);
+    anime({
+      targets: panelRef.current,
+      rotateZ: 0, // Reset rotation on hover
+      scale: 1.0, // Scale up
+      duration: 100,
+      easing: "easeOutQuad",
+      complete: leavingDone
+    });
+    function leavingDone(){
+      setIsHovered(false);
+    }
   };
 
   const maxSize = Math.max(size.height, size.width);
