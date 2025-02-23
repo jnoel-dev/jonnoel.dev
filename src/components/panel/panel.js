@@ -188,7 +188,7 @@ export default function Panel({ height, width, children }) {
           translateY: newY - rect.top,
           rotateZ: newRotation,
           easing: "linear",
-          duration: Math.random() * 3000 + 3000,
+          duration: Math.random() * 2000 + 4000,
           loop: false,
         });
 
