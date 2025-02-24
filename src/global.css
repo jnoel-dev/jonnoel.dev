@@ -17,9 +17,10 @@ body,
   flex-wrap: wrap;
   align-content: center;
   font-family: cozette;
-  font-size: 24px;
+  font-size: 18px;
   user-select: none;
-  color: color-mix(in srgb, theme("colors.globalColor6") 50%, black);
+  /* color: color-mix(in srgb, theme("colors.globalColor6") 50%, black); */
+  color: color-mix(in srgb, theme("colors.globalColor1") 50%, white);
 }
 
 @layer utilities {

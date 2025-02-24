@@ -1,8 +1,10 @@
 import anime from "animejs";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import styles from "./panel.module.css";
+import resolveConfig from "tailwindcss/resolveConfig";
+import tailwindConfig from "../../../tailwind.config";
 
-export default function Panel({ height, width, children }) {
+export default function Panel({ height, width, children, bgcolor="globalColor1", openingDelay=100}) {
   const panelRef = useRef(null);
   const dragZoneRef = useRef(null);
   const [size, setSize] = useState({ width, height });
@@ -12,7 +14,9 @@ export default function Panel({ height, width, children }) {
   const [isAnimationComplete, setIsAnimationComplete] = useState(false);
   const hasRendered = useRef(false);
   const animationRef = useRef(null);
-  const animationTimeoutRef = useRef(null);
+  const fullConfig = resolveConfig(tailwindConfig);
+  const bgColorValue = fullConfig.theme.colors[bgcolor];
+  const hasStarted = useRef(false);
 
   useLayoutEffect(() => {
     const calculateSize = () => {
@@ -52,7 +56,7 @@ export default function Panel({ height, width, children }) {
         clipPath: ["inset(0% 0% 100% 0%)", "inset(0% 0% 0% 0%)"],
         easing: "easeOutExpo",
         duration: 800,
-        delay: 1000,
+        delay: openingDelay,
         complete: () => {
           setIsAnimationComplete(true);
         },
@@ -83,8 +87,8 @@ export default function Panel({ height, width, children }) {
   }, []);
 
   const handleMouseEnter = () => {
-    if (!isAnimationComplete) return;
-
+    if (!isAnimationComplete || panelRef.current.dataset.isMovingToCenter === "true") return; // 🔹 Prevent hover effect if panel is moving
+  
     setIsHovered(true);
     anime({
       targets: panelRef.current,
@@ -93,6 +97,8 @@ export default function Panel({ height, width, children }) {
       easing: "easeOutQuad",
     });
   };
+  
+  
 
   const handleMouseLeave = () => {
     if (isDragging) return;
@@ -161,27 +167,27 @@ export default function Panel({ height, width, children }) {
     if (!isHovered && !isDragging) {
       const animateFloating = () => {
         if (!panelRef.current) return;
-
+  
         const panel = panelRef.current;
         const rect = panel.getBoundingClientRect();
-
+  
         const maxX = window.innerWidth - rect.width;
         const maxY = window.innerHeight - rect.height;
-
+  
         const newX = Math.max(0, Math.min(maxX, rect.left + (Math.random() * 60 - 30)));
         const newY = Math.max(0, Math.min(maxY, rect.top + (Math.random() * 60 - 30)));
-
+  
         const currentRotation = parseFloat(
           panel.style.transform.match(/rotateZ\((-?\d+(?:\.\d+)?)deg\)/)?.[1] || "0"
         );
         const newRotation = Math.max(-15, Math.min(15, currentRotation + (Math.random() * 6 - 3)));
-
-        // Stop previous animation if it exists
+  
+  
         if (animationRef.current) {
           animationRef.current.pause();
         }
+  
 
-        // Start new animation
         animationRef.current = anime({
           targets: panel,
           translateX: newX - rect.left,
@@ -189,36 +195,36 @@ export default function Panel({ height, width, children }) {
           rotateZ: newRotation,
           easing: "linear",
           duration: Math.random() * 2000 + 4000,
+          delay: hasStarted.current ? 0 : 5000, 
           loop: false,
-        });
-
-        // Force stop the animation mid-way and restart it
-        if (animationTimeoutRef.current) {
-          clearTimeout(animationTimeoutRef.current);
-        }
-        animationTimeoutRef.current = setTimeout(() => {
-          if (animationRef.current) {
-            animationRef.current.pause(); // Stop animation mid-motion
-            animateFloating(); // Restart immediately
+          update: () => {
+            if (isHovered || isDragging) {
+              animationRef.current.pause(); 
+            }
+          },
+          complete: () => {
+            hasStarted.current = true; 
+            if (!isHovered && !isDragging) {
+              animateFloating(); 
+            }
           }
-        }, Math.random() * 1500 + 1500); // Stops before the full duration
+        });
       };
-
+  
       animateFloating();
-
+  
       return () => {
         if (animationRef.current) {
           animationRef.current.pause();
         }
-        if (animationTimeoutRef.current) {
-          clearTimeout(animationTimeoutRef.current);
-        }
       };
     }
   }, [isHovered, isDragging]);
+  
 
   useEffect(() => {
     if (isHovered) {
+      hasStarted.current = false;
       anime.remove(panelRef.current);
       anime({
         targets: panelRef.current,
@@ -230,6 +236,7 @@ export default function Panel({ height, width, children }) {
       });
     }
   }, [isHovered]);
+
 
   const maxSize = Math.max(size.height, size.width);
   return (
@@ -251,10 +258,11 @@ export default function Panel({ height, width, children }) {
         }}
       >
         <div
-          className={`card-content absolute bg-globalColor1
+          className={`card-content absolute 
             ${width === "auto" ? "w-max" : "w-[calc(100%-8px)]"} 
             ${height === "auto" ? "h-max" : "h-[calc(100%-24px)]"} 
             top-[20px] left-[4px] ${styles.cardContent}`}
+            style={{backgroundColor: bgColorValue}}
         >
           {children}
         </div>
