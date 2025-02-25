@@ -3,20 +3,26 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import styles from "./panel.module.css";
 import resolveConfig from "tailwindcss/resolveConfig";
 import tailwindConfig from "../../../tailwind.config";
+import { useRouter } from "next/router";
+import { useGlobalComponents } from "../globalComponentsContext/globalComponentsContext";
 
-export default function Panel({ height, width, children, bgcolor="globalColor1", openingDelay=100}) {
+export default function Panel({ height, width, children, bgcolor="globalColor1", openingDelay=100, connectedHref, panelId}) {
   const panelRef = useRef(null);
   const dragZoneRef = useRef(null);
+  const closeButtonRef = useRef(null);
   const [size, setSize] = useState({ width, height });
   const [isDragging, setIsDragging] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
-  const [isAnimationComplete, setIsAnimationComplete] = useState(false);
+  const [isScalingAnimationComplete, setIsScalingAnimationComplete] = useState(false);
+  const isClippingAnimationCompleteRef = useRef(false);
   const hasRendered = useRef(false);
   const animationRef = useRef(null);
   const fullConfig = resolveConfig(tailwindConfig);
   const bgColorValue = fullConfig.theme.colors[bgcolor];
   const hasStarted = useRef(false);
+  const router = useRouter();
+  const { removeComponent, setShouldRemoveComponent} = useGlobalComponents();
 
   useLayoutEffect(() => {
     const calculateSize = () => {
@@ -49,8 +55,8 @@ export default function Panel({ height, width, children, bgcolor="globalColor1",
 
   useEffect(() => {
     if (panelRef.current) {
-      setIsAnimationComplete(false);
-
+      isClippingAnimationCompleteRef.current = false;
+  
       const animation = anime({
         targets: panelRef.current,
         clipPath: ["inset(0% 0% 100% 0%)", "inset(0% 0% 0% 0%)"],
@@ -58,10 +64,13 @@ export default function Panel({ height, width, children, bgcolor="globalColor1",
         duration: 800,
         delay: openingDelay,
         complete: () => {
-          setIsAnimationComplete(true);
-        },
+          isClippingAnimationCompleteRef.current = true;
+        
+          forceCheckMouseOver()
+        }
+        ,
       });
-
+  
       const centerPanel = () => {
         requestAnimationFrame(() => {
           if (panelRef.current) {
@@ -75,9 +84,9 @@ export default function Panel({ height, width, children, bgcolor="globalColor1",
           }
         });
       };
-
+  
       setTimeout(centerPanel, 50);
-
+  
       window.addEventListener("resize", centerPanel);
       return () => {
         animation.pause();
@@ -85,19 +94,39 @@ export default function Panel({ height, width, children, bgcolor="globalColor1",
       };
     }
   }, []);
+  
+  
 
   const handleMouseEnter = () => {
-    if (!isAnimationComplete || panelRef.current.dataset.isMovingToCenter === "true") return; // 🔹 Prevent hover effect if panel is moving
-  
+    console.log("Mouse enter triggered");
+    if (!isClippingAnimationCompleteRef.current || panelRef.current.dataset.isMovingToCenter === "true") return;
+    console.log("true")
+    
     setIsHovered(true);
     anime({
       targets: panelRef.current,
       scale: 1.05,
-      duration: 100,
+      duration: 50,
       easing: "easeOutQuad",
     });
   };
   
+  const forceCheckMouseOver = () => {
+    requestAnimationFrame(() => {
+      if (!panelRef.current) return;
+  
+      const { left, top, width, height } = panelRef.current.getBoundingClientRect();
+      const centerX = left + width / 2;
+      const centerY = top + height / 2;
+  
+      const hoveredElement = document.elementFromPoint(centerX, centerY);
+  
+      if (panelRef.current.contains(hoveredElement)) {
+  
+        handleMouseEnter();
+      }
+    });
+  }
   
 
   const handleMouseLeave = () => {
@@ -106,7 +135,7 @@ export default function Panel({ height, width, children, bgcolor="globalColor1",
     anime({
       targets: panelRef.current,
       scale: 1.0,
-      duration: 100,
+      duration: 50,
       easing: "easeOutQuad",
       complete: () => {
         setIsHovered(false);
@@ -115,7 +144,7 @@ export default function Panel({ height, width, children, bgcolor="globalColor1",
   };
 
   const handleMouseDown = (e) => {
-    if (!isAnimationComplete || !dragZoneRef.current.contains(e.target)) return;
+    if (!isClippingAnimationCompleteRef.current && !isScalingAnimationComplete || !dragZoneRef.current.contains(e.target)) return;
 
     anime.remove(panelRef.current);
     setIsDragging(true);
@@ -125,6 +154,37 @@ export default function Panel({ height, width, children, bgcolor="globalColor1",
     const top = parseFloat(computedStyle.top || 0);
 
     setOffset({ x: e.clientX - left, y: e.clientY - top });
+  };
+  const handleMouseUpCloseButton = (e) => {
+    console.log("setting true")
+    setShouldRemoveComponent(true);
+    router.back();
+    
+    removeComponent(panelId)
+  };
+  
+  const handleMouseEnterCloseButton = (e) => {
+
+    
+
+    anime({
+      targets: closeButtonRef.current,
+      scale: 1.5,
+      duration: 100,
+      easing: "easeOutQuad",
+    });
+
+  };
+
+  const handleMouseLeaveCloseButton = (e) => {
+
+    anime({
+      targets: closeButtonRef.current,
+      scale: 1,
+      duration: 100,
+      easing: "easeOutQuad",
+    });
+
   };
 
   useEffect(() => {
@@ -232,7 +292,7 @@ export default function Panel({ height, width, children, bgcolor="globalColor1",
         scale: 1.05,
         duration: 100,
         easing: "easeOutQuad",
-        complete: () => setIsAnimationComplete(true),
+        complete: () => setIsScalingAnimationComplete(true),
       });
     }
   }, [isHovered]);
@@ -272,6 +332,14 @@ export default function Panel({ height, width, children, bgcolor="globalColor1",
         className={styles.dragZone}
         onMouseDown={handleMouseDown}
       ></div>
+      {connectedHref !== "/" && <button
+        ref={closeButtonRef}
+        className={styles.closeButton}
+        onMouseUp={handleMouseUpCloseButton}
+        onMouseEnter={handleMouseEnterCloseButton}
+        onMouseLeave={handleMouseLeaveCloseButton}
+     
+      >x</button>}
     </div>
   );
 }

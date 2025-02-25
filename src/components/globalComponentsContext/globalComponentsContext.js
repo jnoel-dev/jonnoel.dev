@@ -5,9 +5,12 @@ const GlobalComponentsContext = createContext();
 export function GlobalComponentsProvider({ children }) {
   const [components, setComponents] = useState([]); // Stores added components
   const panelRefs = useRef(new Map()); // Stores panel refs by ID
+  const [shouldRemoveComponent, setShouldRemoveComponent] = useState(false); // ✅ New state
 
   const addComponent = (id, component) => {
     if (!panelRefs.current.has(id)) {
+ 
+    
       setComponents((prev) => [
         ...prev,
         {
@@ -23,14 +26,23 @@ export function GlobalComponentsProvider({ children }) {
   };
 
   const removeComponent = (id) => {
+
+  
     setComponents((prev) => prev.filter((c) => c.id !== id));
+
     panelRefs.current.delete(id);
   };
 
   const getPanelRef = (id) => panelRefs.current.get(id) || null; // Ensures null if not found
 
   return (
-    <GlobalComponentsContext.Provider value={{ addComponent, removeComponent, getPanelRef }}>
+    <GlobalComponentsContext.Provider value={{ 
+      addComponent, 
+      removeComponent, 
+      getPanelRef, 
+      shouldRemoveComponent, // ✅ Provide this state
+      setShouldRemoveComponent // ✅ Provide setter for external control
+    }}>
       {children}
       {components.map(({ component }) => component)}
     </GlobalComponentsContext.Provider>

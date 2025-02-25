@@ -39,6 +39,7 @@ export default function WinButton({ children, href, onClick, connectedPanelId })
           duration: 1000,
           complete: () => {
             panel.dataset.isMovingToCenter = "false"; // 🔹 Reset flag when done
+
           },
         });
       }

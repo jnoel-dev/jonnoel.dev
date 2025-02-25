@@ -5,7 +5,7 @@ import TitleBar from "../titlebar/titlebar";
 export default function HomePanel({ children }) {
 
     return(
-    <Panel width={"auto"} height={"auto"} openingDelay="2000" >
+    <Panel width={"auto"} height={"auto"} openingDelay="2000" connectedHref="/">
     <TitleBar title="w e l c o m e" />
     <div className="flex items-center justify-center gap-2 p-2">
 
