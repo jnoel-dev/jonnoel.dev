@@ -24,6 +24,7 @@ export default function WinButton({ children, href, onClick, connectedPanelId })
     
         // 🔹 Set flag to indicate panel is moving
         panel.dataset.isMovingToCenter = "true";
+        panel.dataset.isMovingToCenterAnimationCompleted = "false";
     
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
@@ -39,7 +40,9 @@ export default function WinButton({ children, href, onClick, connectedPanelId })
           duration: 1000,
           complete: () => {
             panel.dataset.isMovingToCenter = "false"; // 🔹 Reset flag when done
-
+            const event = new CustomEvent("panelForcedCenter", { detail: panel });
+            window.dispatchEvent(event);
+     
           },
         });
       }

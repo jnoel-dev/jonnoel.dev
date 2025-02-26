@@ -7,6 +7,7 @@ import { useRouter } from "next/router";
 import { useGlobalComponents } from "../globalComponentsContext/globalComponentsContext";
 
 export default function Panel({ height, width, children, bgcolor="globalColor1", openingDelay=100, connectedHref, panelId}) {
+  
   const panelRef = useRef(null);
   const dragZoneRef = useRef(null);
   const closeButtonRef = useRef(null);
@@ -23,6 +24,7 @@ export default function Panel({ height, width, children, bgcolor="globalColor1",
   const hasStarted = useRef(false);
   const router = useRouter();
   const { removeComponent, setShouldRemoveComponent} = useGlobalComponents();
+  const panelResetTimeout = 5000;
 
   useLayoutEffect(() => {
     const calculateSize = () => {
@@ -53,6 +55,65 @@ export default function Panel({ height, width, children, bgcolor="globalColor1",
     return;
   }, [width, height, children]);
 
+  const mousePositionRef = useRef({ x: 0, y: 0 });
+
+useEffect(() => {
+  const updateMousePosition = (e) => {
+    mousePositionRef.current = { x: e.clientX, y: e.clientY };
+  };
+
+  window.addEventListener("mousemove", updateMousePosition);
+ 
+
+  return () => {
+    window.removeEventListener("mousemove", updateMousePosition);
+  };
+}, []);
+
+useEffect(() => {
+  if (!panelRef.current) return;
+  const handleAnimationComplete = (event) => {
+  
+    if (panelRef.current == event.detail){
+      setIsHovered(true);
+      setTimeout(() => {
+        forceCheckMouseOver();
+      }, panelResetTimeout);
+    }
+
+  };
+
+  window.addEventListener("panelForcedCenter", handleAnimationComplete);
+
+  return () => {
+    window.removeEventListener("panelForcedCenter", handleAnimationComplete);
+  };
+
+}, []);
+
+const forceCheckMouseOver = () => {
+
+    if (!panelRef.current) return;
+
+    // ✅ Get latest mouse position from ref
+    const { x: mouseX, y: mouseY } = mousePositionRef.current;
+
+    // ✅ Check the element under the mouse
+    const hoveredElement = document.elementFromPoint(mouseX, mouseY);
+
+    if (panelRef.current.contains(hoveredElement)) {
+   
+      handleMouseEnter();
+    }
+    else{
+     
+      
+      
+      handleMouseLeave();
+    }
+
+};
+
   useEffect(() => {
     if (panelRef.current) {
       isClippingAnimationCompleteRef.current = false;
@@ -65,8 +126,11 @@ export default function Panel({ height, width, children, bgcolor="globalColor1",
         delay: openingDelay,
         complete: () => {
           isClippingAnimationCompleteRef.current = true;
-        
-          forceCheckMouseOver()
+          setIsHovered(true);
+
+          setTimeout(() => {
+            forceCheckMouseOver();
+          }, panelResetTimeout);
         }
         ,
       });
@@ -98,40 +162,21 @@ export default function Panel({ height, width, children, bgcolor="globalColor1",
   
 
   const handleMouseEnter = () => {
-    console.log("Mouse enter triggered");
+    console.log("mouse enter")
     if (!isClippingAnimationCompleteRef.current || panelRef.current.dataset.isMovingToCenter === "true") return;
-    console.log("true")
+
     
     setIsHovered(true);
-    anime({
-      targets: panelRef.current,
-      scale: 1.05,
-      duration: 50,
-      easing: "easeOutQuad",
-    });
+
   };
   
-  const forceCheckMouseOver = () => {
-    requestAnimationFrame(() => {
-      if (!panelRef.current) return;
+
   
-      const { left, top, width, height } = panelRef.current.getBoundingClientRect();
-      const centerX = left + width / 2;
-      const centerY = top + height / 2;
-  
-      const hoveredElement = document.elementFromPoint(centerX, centerY);
-  
-      if (panelRef.current.contains(hoveredElement)) {
-  
-        handleMouseEnter();
-      }
-    });
-  }
   
 
   const handleMouseLeave = () => {
     if (isDragging) return;
-
+    console.log("SACLING DOWN")
     anime({
       targets: panelRef.current,
       scale: 1.0,
@@ -156,7 +201,7 @@ export default function Panel({ height, width, children, bgcolor="globalColor1",
     setOffset({ x: e.clientX - left, y: e.clientY - top });
   };
   const handleMouseUpCloseButton = (e) => {
-    console.log("setting true")
+
     setShouldRemoveComponent(true);
     router.back();
     
@@ -284,6 +329,7 @@ export default function Panel({ height, width, children, bgcolor="globalColor1",
 
   useEffect(() => {
     if (isHovered) {
+      
       hasStarted.current = false;
       anime.remove(panelRef.current);
       anime({
