@@ -2,15 +2,31 @@ import { shaderMaterial } from "@react-three/drei";
 import * as THREE from "three";
 import tailwindConfig from "../../tailwind.config";
 
+interface TailwindThemeColors {
+  globalColor1: string;
+  globalColor2: string;
+  globalColor3: string;
+  globalColor4: string;
+  globalColor5: string;
+  globalColor6: string;
+}
+
+interface TailwindConfigType {
+  theme: {
+    colors: TailwindThemeColors;
+  };
+}
+
+const config = tailwindConfig as TailwindConfigType;
+
 const DitherMaterial = shaderMaterial(
   {
-    globalColor1: new THREE.Color(tailwindConfig.theme.colors.globalColor1),
-    globalColor2: new THREE.Color(tailwindConfig.theme.colors.globalColor2),
-    globalColor3: new THREE.Color(tailwindConfig.theme.colors.globalColor3),
-    globalColor4: new THREE.Color(tailwindConfig.theme.colors.globalColor4),
-    globalColor5: new THREE.Color(tailwindConfig.theme.colors.globalColor5),
-    globalColor6: new THREE.Color(tailwindConfig.theme.colors.globalColor6),
-
+    globalColor1: new THREE.Color(config.theme.colors.globalColor1),
+    globalColor2: new THREE.Color(config.theme.colors.globalColor2),
+    globalColor3: new THREE.Color(config.theme.colors.globalColor3),
+    globalColor4: new THREE.Color(config.theme.colors.globalColor4),
+    globalColor5: new THREE.Color(config.theme.colors.globalColor5),
+    globalColor6: new THREE.Color(config.theme.colors.globalColor6),
     time: 0.0,
     mousePosition: new THREE.Vector2(0.5, 0.5),
     mouseIntensity: 0.1,
@@ -68,7 +84,7 @@ const DitherMaterial = shaderMaterial(
 
     float mouseWarp(vec2 uv, vec2 mouse, float intensity) {
         float dist = distance(uv, mouse);
-        return exp(-dist * 8.0) * intensity; // Strongest near cursor, fades smoothly
+        return exp(-dist * 8.0) * intensity;
     }
 
     float bayerDither(vec2 uv) {
@@ -85,26 +101,18 @@ const DitherMaterial = shaderMaterial(
     }
 
     void main() {
-
         vec2 aspectCorrectedUv = fixAspectRatio(vScreenUv);
-
         vec3 baseColor = globalColor6;
-
         float flow1 = fluidMotion(aspectCorrectedUv, 0.6, 6.0, 0.3);
         float flow2 = fluidMotion(aspectCorrectedUv * 1.3, -0.8, 9.0, 0.25);
         float flow3 = fluidMotion(aspectCorrectedUv * 0.9, 0.5, 12.0, 0.2);
-
         vec2 swirl1 = swirlingFlow(aspectCorrectedUv, 0.5, 4.0, 1.2);
         vec2 swirl2 = swirlingFlow(aspectCorrectedUv * 1.1, -0.4, 6.0, 0.8);
-
         float mouseEffect = mouseWarp(aspectCorrectedUv, mousePosition, mouseIntensity);
-
         float hazePattern = flow1 * 0.4 + flow2 * 0.3 + flow3 * 0.3 + dot(swirl1 + swirl2, vec2(0.5, 0.5)) + mouseEffect;
-        hazePattern = clamp(hazePattern * hazeAmount, 0.0, 1.0); // Apply Haze Amount Scaling
-
+        hazePattern = clamp(hazePattern * hazeAmount, 0.0, 1.0);
         hazePattern = pow(hazePattern, 1.1);
         hazePattern *= colorIntensity;
-
         float stepSize = 1.0 / 5.0;
         vec3 hazeColor;
         if (hazePattern < stepSize) {
@@ -118,17 +126,13 @@ const DitherMaterial = shaderMaterial(
         } else {
             hazeColor = globalColor5;
         }
-
         float ditherThreshold = bayerDither(aspectCorrectedUv * ditherSize);
         float ditherMask = step(ditherThreshold, hazePattern);
-        float applyDither = smoothstep(0.1, 0.8, hazePattern); // Dithering fades in as haze gets stronger
-
+        float applyDither = smoothstep(0.1, 0.8, hazePattern);
         vec3 finalColor = mix(baseColor, hazeColor, applyDither * ditherMask);
-        //vec3 finalColor = mix(baseColor, hazeColor, hazePattern);
-
         gl_FragColor = vec4(finalColor, 1.0);
     }
-  `,
+  `
 );
 
 export { DitherMaterial };
