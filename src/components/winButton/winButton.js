@@ -6,10 +6,21 @@ import anime from "animejs";
 
 export default function WinButton({ children, href, onClick, connectedPanelId }) {
   const [isPressed, setIsPressed] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [isDisabled, setIsDisabled] = useState(false); 
   const router = useRouter();
   const { getPanelRef } = useGlobalComponents();
 
   const handleClick = () => {
+
+    
+    console.log(isAnimating)
+    if (isAnimating || isDisabled) return;
+    
+
+    setIsDisabled(true); 
+    setTimeout(() => setIsDisabled(false), 1000); 
+
     if (onClick) {
       onClick();
     } else if (href) {
@@ -18,13 +29,14 @@ export default function WinButton({ children, href, onClick, connectedPanelId })
 
     if (connectedPanelId) {
       const panelWrapper = getPanelRef(connectedPanelId);
+
+      if (panelWrapper ) {
+        const panel = panelWrapper.firstElementChild; 
     
-      if (panelWrapper) {
-        const panel = panelWrapper.firstElementChild || panelWrapper; // Ensure correct target
-    
-        // 🔹 Set flag to indicate panel is moving
+      
         panel.dataset.isMovingToCenter = "true";
         panel.dataset.isMovingToCenterAnimationCompleted = "false";
+        setIsAnimating(true);
     
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
@@ -39,12 +51,23 @@ export default function WinButton({ children, href, onClick, connectedPanelId })
           easing: "easeOutExpo",
           duration: 1000,
           complete: () => {
-            panel.dataset.isMovingToCenter = "false"; // 🔹 Reset flag when done
+            setIsAnimating(false);
+            panel.dataset.isMovingToCenter = "false"; 
             const event = new CustomEvent("panelForcedCenter", { detail: panel });
             window.dispatchEvent(event);
      
           },
         });
+
+        //fix later
+        setTimeout(() => {
+          if (isAnimating) {
+            setIsAnimating(false);
+            panel.dataset.isMovingToCenter = "false"; 
+            const event = new CustomEvent("panelForcedCenter", { detail: panel });
+            window.dispatchEvent(event);
+          }
+        }, 1050); 
       }
     }
     

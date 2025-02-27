@@ -6,7 +6,13 @@ import tailwindConfig from "../../../tailwind.config";
 import { useRouter } from "next/router";
 import { useGlobalComponents } from "../globalComponentsContext/globalComponentsContext";
 
-export default function Panel({ height, width, children, bgcolor="globalColor1", openingDelay=100, connectedHref, panelId}) {
+let isFirstRenderAfterRefresh = true; // Global flag
+
+if (typeof window !== "undefined" && performance.getEntriesByType("navigation")[0]?.type === "reload") {
+  isFirstRenderAfterRefresh = true; // Reset on page refresh
+}
+
+export default function Panel({ height, width, children, bgcolor="globalColor1", connectedHref, panelId}) {
   
   const panelRef = useRef(null);
   const dragZoneRef = useRef(null);
@@ -25,6 +31,22 @@ export default function Panel({ height, width, children, bgcolor="globalColor1",
   const router = useRouter();
   const { removeComponent, setShouldRemoveComponent} = useGlobalComponents();
   const panelResetTimeout = 5000;
+
+  const [isPageLoaded, setIsPageLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!isPageLoaded) {
+      setIsPageLoaded(true);
+    }
+  }, []);
+
+  const adjustedOpeningDelay = isFirstRenderAfterRefresh ? 2000 : 100;
+
+  useEffect(() => {
+    if (isPageLoaded) {
+      isFirstRenderAfterRefresh = false; // Only turn off after full page load
+    }
+  }, [isPageLoaded]);
 
   useLayoutEffect(() => {
     const calculateSize = () => {
@@ -118,14 +140,16 @@ const forceCheckMouseOver = () => {
     if (panelRef.current) {
       isClippingAnimationCompleteRef.current = false;
   
+  
       const animation = anime({
         targets: panelRef.current,
         clipPath: ["inset(0% 0% 100% 0%)", "inset(0% 0% 0% 0%)"],
         easing: "easeOutExpo",
         duration: 800,
-        delay: openingDelay,
+        delay: adjustedOpeningDelay,
         complete: () => {
           isClippingAnimationCompleteRef.current = true;
+       
           setIsHovered(true);
 
           setTimeout(() => {
@@ -162,7 +186,7 @@ const forceCheckMouseOver = () => {
   
 
   const handleMouseEnter = () => {
-    console.log("mouse enter")
+
     if (!isClippingAnimationCompleteRef.current || panelRef.current.dataset.isMovingToCenter === "true") return;
 
     
@@ -176,7 +200,7 @@ const forceCheckMouseOver = () => {
 
   const handleMouseLeave = () => {
     if (isDragging) return;
-    console.log("SACLING DOWN")
+
     anime({
       targets: panelRef.current,
       scale: 1.0,
@@ -202,10 +226,23 @@ const forceCheckMouseOver = () => {
   };
   const handleMouseUpCloseButton = (e) => {
 
-    setShouldRemoveComponent(true);
-    router.back();
     
-    removeComponent(panelId)
+    router.back();
+    setShouldRemoveComponent(true);
+    removeComponent(panelId);
+   
+    // anime({
+    //   targets: panelRef.current,
+    //   scale: [1, 1.1, 0], // Quick pop before disappearing
+    //   opacity: [1, 0],
+    //   duration: 1000,
+    //   easing: "easeInOutQuad",
+    //   complete: () => {
+
+    //   },
+    // });
+    
+
   };
   
   const handleMouseEnterCloseButton = (e) => {
