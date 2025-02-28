@@ -5,6 +5,7 @@
     "@react-three/drei": "^10.0.0",
     "@react-three/fiber": "^9.0.2",
     "@react-three/postprocessing": "^3.0.3",
+    "@types/fabric": "^5.3.10",
     "animejs": "^3.2.1",
     "fabric": "^6.6.1",
     "firebase": "^9.20.0",
