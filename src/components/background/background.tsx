@@ -68,6 +68,7 @@ const Background: React.FC<BackgroundProps> = ({ children }) => {
 
     function createSprite(k: number): (sprite: Sprite) => void {
       return (sprite: Sprite): void => {
+        // Configure the sprite's properties.
         sprite.set({
           top: 0,
           left: 0,
@@ -76,13 +77,15 @@ const Background: React.FC<BackgroundProps> = ({ children }) => {
           selectable: true,
           hasControls: false,
           hasBorders: false,
-          hoverCursor: "default", 
+          hoverCursor: "default",
         });
+        // Scale the sprite based on its star's random scale.
         sprite.scale(stars[k].z);
         canvas.add(sprite);
         sprite.play();
         stars[k].fabObj = sprite;
     
+        // Drag/drop event handling.
         sprite.on("mousedown", () => {
           stars[k].dragEventFiring = true;
         });
@@ -95,8 +98,32 @@ const Background: React.FC<BackgroundProps> = ({ children }) => {
           stars[k].x = sprite.left as number;
           stars[k].y = sprite.top as number;
         });
+    
+        // Animated scaling on mouseover and mouseout.
+        sprite.on("mouseover", () => {
+          sprite.animate({ scaleX: stars[k].z * 1.5 }, {
+            duration: 100,
+            onChange: canvas.renderAll.bind(canvas),
+          });
+          sprite.animate({ scaleY: stars[k].z * 1.5 }, {
+            duration: 100,
+            onChange: canvas.renderAll.bind(canvas),
+          });
+        });
+        sprite.on("mouseout", () => {
+          sprite.animate({ scaleX: stars[k].z }, {
+            duration: 100,
+            onChange: canvas.renderAll.bind(canvas),
+          });
+          sprite.animate({ scaleY: stars[k].z }, {
+            duration: 100,
+            onChange: canvas.renderAll.bind(canvas),
+          });
+        });
       };
     }
+    
+    
 
     function placeStar(star: Star): void {
       star.x = Math.random() * width;

@@ -3,13 +3,11 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Canvas, useFrame, useThree, extend, ThreeElements } from "@react-three/fiber";
 import * as THREE from "three";
-import { DitherMaterial } from "../../shaders/ditherShader";
+import { DitherMaterial } from "./ditherShader";
 import tailwindConfig from "../../../tailwind.config";
 
 extend({ DitherMaterial });
 
-// Augment JSX so that <ditherMaterial /> is recognized.
-// We assign it the same type as the built-in 'shaderMaterial' element.
 declare global {
   namespace React.JSX {
     interface IntrinsicElements {
