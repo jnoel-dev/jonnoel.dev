@@ -64,6 +64,8 @@ const Panel: React.FC<PanelProps> = ({
   const panelResetTimeout = 5000;
   const [isPageLoaded, setIsPageLoaded] = useState<boolean>(false);
   const [transformOffset, setTransformOffset] = useState({ x: 0, y: 0 });
+  const [globalViewport, setGlobalViewport] = useState<{ width: number; height: number } | null>(null);
+
 
   
 
@@ -160,59 +162,52 @@ const Panel: React.FC<PanelProps> = ({
     }
   };
 
-  const centerPanel = () => {
-    requestAnimationFrame(() => {
-      if (!panelRef.current) return;
+  const centerPanel = (viewportWidth: number, viewportHeight: number) => {
+    if (!panelRef.current) return;
   
-      let rect = panelRef.current.getBoundingClientRect();
-      let viewportWidth = window.innerWidth;
-      let viewportHeight = window.innerHeight;
-
-      console.log(`Panel ${panelId} rect before centering:`, rect);
-      // 🔥 Ensure panel dimensions are available before centering
-      if (rect.width === 0 || rect.height === 0 || viewportWidth === 0) {
-        setTimeout(centerPanel, 100); // Retry after a short delay (increased for mobile stability)
-        return;
-      }
+    let rect = panelRef.current.getBoundingClientRect();
+    console.log(`Panel ${panelId} rect before centering:`, rect);
   
-      // 🔥 Force a re-measure to fix incorrect sizes on mobile
-      rect = panelRef.current.getBoundingClientRect();
-      viewportWidth = window.innerWidth;
-      viewportHeight = window.innerHeight;
+    if (rect.width === 0 || rect.height === 0) {
+      setTimeout(() => centerPanel(viewportWidth, viewportHeight), 50);
+      return;
+    }
   
-      let left = (viewportWidth - rect.width) / 2;
-      let top = (viewportHeight - rect.height) / 2;
-      console.log(`Panel ${panelId} setting left: ${left}, top: ${top}`);
+    let left = (viewportWidth - rect.width) / 2;
+    let top = (viewportHeight - rect.height) / 2;
   
-      // 🔥 Ensure values are within valid bounds (no negative left/top)
-      left = Math.max(0, left);
-      top = Math.max(0, top);
+    console.log(`Panel ${panelId} setting left: ${left}, top: ${top}`);
   
-
-  
-      // 🔥 Apply corrected position
-      panelRef.current.style.left = `${left}px`;
-      panelRef.current.style.top = `${top}px`;
-    });
+    panelRef.current.style.left = `${left}px`;
+    panelRef.current.style.top = `${top}px`;
   };
+  
   
   // Run centering on mount
   useLayoutEffect(() => {
     if (!panelRef.current) return;
   
+    // Only measure viewport once for all panels
+    if (!globalViewport) {
+      setGlobalViewport({ width: window.innerWidth, height: window.innerHeight });
+    }
+  
     isClippingAnimationCompleteRef.current = false;
   
-    setTimeout(() => {
-      console.log(`Panel ${panelId} executing centerPanel()`);
-      centerPanel();
-    }, 1000); // Small delay ensures layout stabilization
+    // 🔥 Delay to ensure layout has stabilized before centering all panels
+    centerPanel(globalViewport?.width ?? window.innerWidth, globalViewport?.height ?? window.innerHeight);
+    // setTimeout(() => {
+    //   console.log(`Panel ${panelId} executing centerPanel() with shared viewport`);
+    //   centerPanel(globalViewport?.width ?? window.innerWidth, globalViewport?.height ?? window.innerHeight);
+    // }, 200);
   
-    window.addEventListener("resize", centerPanel);
+    window.addEventListener("resize", () => centerPanel(window.innerWidth, window.innerHeight));
   
     return () => {
-      window.removeEventListener("resize", centerPanel);
+      window.removeEventListener("resize", () => centerPanel(window.innerWidth, window.innerHeight));
     };
-  }, []);
+  }, [globalViewport]);
+  
   
   
   

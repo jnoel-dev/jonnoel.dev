@@ -8,7 +8,7 @@ import UnderContructionPanel from "../components/homePanel/underContructionPanel
 const MyApp: React.FC<AppProps> = ({ Component, pageProps }) => (
   <GlobalComponentsProvider>
     <Defaults />
-    {/* <HomePanel /> */}
+    <HomePanel />
     <UnderContructionPanel />
     <Component {...pageProps} />
   </GlobalComponentsProvider>
