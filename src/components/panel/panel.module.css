@@ -6,10 +6,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
-
-
-  clip-path: inset(0% 0% 100% 0%);
+  /* clip-path: inset(0% 0% 100% 0%); */
   overflow: hidden;
+
 }
 
 .cardContent {

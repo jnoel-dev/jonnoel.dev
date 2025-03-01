@@ -143,7 +143,6 @@ const Background: React.FC<BackgroundProps> = ({ children }) => {
         const starUrl = `/images/star${Math.floor(Math.random() * 4) + 1}.png`;
         Sprite.fromURL(starUrl)
           .then((sprite) => {
-            console.log("Sprite loaded:", sprite);
             star.fabObj = sprite;
             createSprite(k)(sprite);
           })

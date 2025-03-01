@@ -6,6 +6,7 @@ import tailwindConfig from "../../../tailwind.config";
 import { useRouter } from "next/router";
 import { useGlobalComponents } from "../globalComponentsContext/globalComponentsContext";
 
+const isMobile = typeof window !== "undefined" && /Mobi|Android/i.test(navigator.userAgent);
 let isFirstRenderAfterRefresh = true;
 if (typeof window !== "undefined") {
   const navEntry = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming;
@@ -62,6 +63,10 @@ const Panel: React.FC<PanelProps> = ({
   const { removeComponent, setShouldRemoveComponent } = useGlobalComponents() as GlobalComponentsContextType;
   const panelResetTimeout = 5000;
   const [isPageLoaded, setIsPageLoaded] = useState<boolean>(false);
+  const [transformOffset, setTransformOffset] = useState({ x: 0, y: 0 });
+
+  
+
 
   useEffect(() => {
     if (!isPageLoaded) {
@@ -81,6 +86,7 @@ const Panel: React.FC<PanelProps> = ({
     const calculateSize = (): void => {
       requestAnimationFrame((): void => {
         if (panelRef.current) {
+         
           let maxWidth: number = typeof width === "number" ? width : 0;
           let maxHeight: number = typeof height === "number" ? height : 0;
           const contentElement = panelRef.current.querySelector(`.${styles.cardContent}`) as HTMLElement | null;
@@ -98,10 +104,8 @@ const Panel: React.FC<PanelProps> = ({
       });
     };
 
-    // Calculate size initially
     calculateSize();
 
-    // Use ResizeObserver to recalculate when content changes
     const contentElement = panelRef.current?.querySelector(`.${styles.cardContent}`) as HTMLElement | null;
     let observer: ResizeObserver | null = null;
     if (contentElement) {
@@ -156,44 +160,91 @@ const Panel: React.FC<PanelProps> = ({
     }
   };
 
-  useEffect(() => {
-    if (panelRef.current) {
-      isClippingAnimationCompleteRef.current = false;
-      const animation = anime({
-        targets: panelRef.current,
-        clipPath: ["inset(0% 0% 100% 0%)", "inset(0% 0% 0% 0%)"],
-        easing: "easeOutExpo",
-        duration: 800,
-        delay: adjustedOpeningDelay,
-        complete: (): void => {
-          isClippingAnimationCompleteRef.current = true;
-          setIsHovered(true);
-          setTimeout((): void => {
-            forceCheckMouseOver();
-          }, panelResetTimeout);
-        }
-      });
-      const centerPanel = (): void => {
-        requestAnimationFrame((): void => {
-          if (panelRef.current) {
-            const rect = panelRef.current.getBoundingClientRect();
-            if (rect.width > 0 && rect.height > 0) {
-              const centerX = (window.innerWidth - rect.width) / 2;
-              const centerY = (window.innerHeight - rect.height) / 2;
-              panelRef.current.style.left = `${centerX}px`;
-              panelRef.current.style.top = `${centerY}px`;
-            }
-          }
-        });
-      };
-      setTimeout(centerPanel, 50);
-      window.addEventListener("resize", centerPanel);
-      return () => {
-        animation.pause();
-        window.removeEventListener("resize", centerPanel);
-      };
-    }
+  const centerPanel = () => {
+    requestAnimationFrame(() => {
+      if (!panelRef.current) return;
+  
+      let rect = panelRef.current.getBoundingClientRect();
+      let viewportWidth = window.innerWidth;
+      let viewportHeight = window.innerHeight;
+
+      console.log(`Panel ${panelId} rect before centering:`, rect);
+      // 🔥 Ensure panel dimensions are available before centering
+      if (rect.width === 0 || rect.height === 0 || viewportWidth === 0) {
+        setTimeout(centerPanel, 100); // Retry after a short delay (increased for mobile stability)
+        return;
+      }
+  
+      // 🔥 Force a re-measure to fix incorrect sizes on mobile
+      rect = panelRef.current.getBoundingClientRect();
+      viewportWidth = window.innerWidth;
+      viewportHeight = window.innerHeight;
+  
+      let left = (viewportWidth - rect.width) / 2;
+      let top = (viewportHeight - rect.height) / 2;
+      console.log(`Panel ${panelId} setting left: ${left}, top: ${top}`);
+  
+      // 🔥 Ensure values are within valid bounds (no negative left/top)
+      left = Math.max(0, left);
+      top = Math.max(0, top);
+  
+
+  
+      // 🔥 Apply corrected position
+      panelRef.current.style.left = `${left}px`;
+      panelRef.current.style.top = `${top}px`;
+    });
+  };
+  
+  // Run centering on mount
+  useLayoutEffect(() => {
+    if (!panelRef.current) return;
+  
+    isClippingAnimationCompleteRef.current = false;
+  
+    setTimeout(() => {
+      console.log(`Panel ${panelId} executing centerPanel()`);
+      centerPanel();
+    }, 1000); // Small delay ensures layout stabilization
+  
+    window.addEventListener("resize", centerPanel);
+  
+    return () => {
+      window.removeEventListener("resize", centerPanel);
+    };
   }, []);
+  
+  
+  
+
+  
+  // 🔥 Move animation logic to `useEffect` so it happens after centering
+  useLayoutEffect(() => {
+    if (!panelRef.current) return;
+
+    // Run the animation AFTER centering is complete
+    const animation = anime({
+      targets: panelRef.current,
+      clipPath: ["inset(0% 0% 100% 0%)", "inset(0% 0% 0% 0%)"],
+      easing: "easeOutExpo",
+      duration: 800,
+      delay: adjustedOpeningDelay,
+      complete: () => {
+        isClippingAnimationCompleteRef.current = true;
+        setIsHovered(true);
+        setTimeout(() => {
+          forceCheckMouseOver();
+        }, panelResetTimeout);
+      }
+    });
+  
+    return () => {
+      animation.pause();
+    };
+  }, []);
+  
+  
+  
 
   const handleMouseEnter = (): void => {
     if (!isClippingAnimationCompleteRef.current || panelRef.current?.dataset.isMovingToCenter === "true")
@@ -202,17 +253,28 @@ const Panel: React.FC<PanelProps> = ({
   };
 
   const handleMouseLeave = (): void => {
-    if (isDragging) return;
-    anime({
-      targets: panelRef.current,
-      scale: 1.0,
-      duration: 50,
-      easing: "easeOutQuad",
-      complete: (): void => {
-        setIsHovered(false);
-      }
-    });
+    if (panelRef.current && !isDragging && !isMobile) {
+      anime({
+        targets: panelRef.current,
+        scale: 1.0,
+        rotateX: 0,
+        rotateY: 0,
+        rotateZ: 0,
+        duration: 200,
+        easing: "easeOutQuad",
+        complete: () => {
+          setIsHovered(false);
+        }
+      });
+    }
   };
+  
+  const updateOffset = (clientX: number, clientY: number) => {
+    if (!panelRef.current) return;
+    const rect = panelRef.current.getBoundingClientRect();
+    setOffset({ x: clientX - rect.left, y: clientY - rect.top });
+  };
+  
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>): void => {
     if (
@@ -220,15 +282,64 @@ const Panel: React.FC<PanelProps> = ({
       !isScalingAnimationComplete ||
       !dragZoneRef.current?.contains(e.target as Node) ||
       panelRef.current?.dataset.isMovingToCenter === "true"
+    ) return;
+  
+    setIsDragging(true);
+  
+    if (!panelRef.current) return;
+  
+    const panel = panelRef.current;
+    const rect = panel.getBoundingClientRect();
+
+  
+    // 🔥 Define the scale factor (from your animation)
+    const scale = 1.05; // Fixed scale value from your animation
+  
+    // 🔥 Adjust left and top based on scale
+    // The panel's size is scaled up, so its width/height is larger than expected
+    const widthOffset = (rect.width * scale - rect.width) / 2;
+    const heightOffset = (rect.height * scale - rect.height) / 2;
+  
+    const newLeft = rect.left + widthOffset + transformOffset.x;
+    const newTop = rect.top + heightOffset + transformOffset.y;
+  
+    // 🔥 Apply corrected position
+    panel.style.left = `${newLeft}px`;
+    panel.style.top = `${newTop}px`;
+  
+    // 🔥 Preserve scale while resetting translation
+    panel.style.transform = `scale(${scale})`;
+  
+    // Update offset for dragging
+    setOffset({ x: e.clientX - newLeft, y: e.clientY - newTop });
+  
+    // Reset transformOffset since we applied it to left/top
+    setTransformOffset({ x: 0, y: 0 });
+  };
+  
+  
+
+  
+  
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>): void => {
+    if (
+      !isClippingAnimationCompleteRef.current ||
+      !isScalingAnimationComplete ||
+      !dragZoneRef.current?.contains(e.target as Node) ||
+      panelRef.current?.dataset.isMovingToCenter === "true"
     )
       return;
-    anime.remove(panelRef.current);
     setIsDragging(true);
-    const computedStyle = window.getComputedStyle(panelRef.current as Element);
-    const left = parseFloat(computedStyle.left || "0");
-    const top = parseFloat(computedStyle.top || "0");
-    setOffset({ x: e.clientX - left, y: e.clientY - top });
+    const touch = e.touches[0];
+    if (!panelRef.current) return;
+    
+    anime.remove(panelRef.current);
+    updateOffset(touch.clientX, touch.clientY);
   };
+  
+  
+  
 
   const handleMouseUpCloseButton = (e: React.MouseEvent<HTMLButtonElement>): void => {
     router.back();
@@ -253,61 +364,115 @@ const Panel: React.FC<PanelProps> = ({
       easing: "easeOutQuad"
     });
   };
+  function updatePanelPosition(
+    panel: HTMLDivElement, 
+    x: number, 
+    y: number, 
+    offset: { x: number; y: number }
+  ): void {
+    const rect = panel.getBoundingClientRect();
+    const computedStyle = window.getComputedStyle(panel);
+  
+    // 🔥 Extract the scale factor (same as handleMouseDown)
+    const scale = 1.05; // Fixed scale value
+  
+    // 🔥 Compute the scaled offset
+    const widthOffset = (rect.width * scale - rect.width) / 2;
+    const heightOffset = (rect.height * scale - rect.height) / 2;
+  
+    // 🔥 Compute viewport boundaries (FINAL FIX!)
+    const minX = 0 + widthOffset;  // Left boundary (correct)
+    const maxX = window.innerWidth - rect.width + widthOffset; // Right boundary (FIXED)
+    const minY = 0 + heightOffset; // Top boundary (correct)
+    const maxY = window.innerHeight - rect.height + heightOffset; // Bottom boundary (FIXED)
+  
+    // 🔥 Restrict new position within the corrected viewport limits
+    const newX = Math.min(maxX, Math.max(minX, x - offset.x));
+    const newY = Math.min(maxY, Math.max(minY, y - offset.y));
+  
+    // 🔥 Apply the corrected position
+    panel.style.left = `${newX}px`;
+    panel.style.top = `${newY}px`;
+  }
+  
+  
+  
+  
 
   useEffect(() => {
-    if (isDragging) {
+    if (isDragging && panelRef.current) {
+      const panel = panelRef.current;
+  
       const handleMouseMove = (e: MouseEvent): void => {
-        if (!panelRef.current) return;
-        const panel = panelRef.current;
-        const rect = panel.getBoundingClientRect();
-        const newX = Math.min(window.innerWidth - rect.width, Math.max(0, e.clientX - offset.x));
-        const newY = Math.min(window.innerHeight - rect.height, Math.max(0, e.clientY - offset.y));
-        panel.style.left = `${newX}px`;
-        panel.style.top = `${newY}px`;
+        updatePanelPosition(panel, e.clientX, e.clientY, offset);
       };
+  
       const handleMouseUp = (): void => {
         setIsDragging(false);
       };
+  
+      const handleTouchMove = (e: TouchEvent): void => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        updatePanelPosition(panel, touch.clientX, touch.clientY, offset);
+      };
+  
+      const handleTouchEnd = (): void => {
+        setIsDragging(false);
+      };
+  
       window.addEventListener("mousemove", handleMouseMove);
       window.addEventListener("mouseup", handleMouseUp);
+      window.addEventListener("touchmove", handleTouchMove, { passive: false });
+      window.addEventListener("touchend", handleTouchEnd, { passive: false });
+  
       return () => {
         window.removeEventListener("mousemove", handleMouseMove);
         window.removeEventListener("mouseup", handleMouseUp);
+        window.removeEventListener("touchmove", handleTouchMove);
+        window.removeEventListener("touchend", handleTouchEnd);
       };
     }
   }, [isDragging, offset]);
-
+  
   useEffect(() => {
-    if (!isHovered && !isDragging) {
+    if (!isHovered && !isDragging && isClippingAnimationCompleteRef.current) {
       const animateFloating = (): void => {
         if (!panelRef.current) return;
         const panel = panelRef.current;
         const rect = panel.getBoundingClientRect();
         const maxX = window.innerWidth - rect.width;
         const maxY = window.innerHeight - rect.height;
+  
         const newX = Math.max(0, Math.min(maxX, rect.left + (Math.random() * 60 - 30)));
         const newY = Math.max(0, Math.min(maxY, rect.top + (Math.random() * 60 - 30)));
+  
         const currentRotationMatch = panel.style.transform.match(/rotateZ\((-?\d+(?:\.\d+)?)deg\)/);
         const currentRotation = parseFloat(currentRotationMatch ? currentRotationMatch[1] : "0");
         const newRotation = Math.max(-15, Math.min(15, currentRotation + (Math.random() * 6 - 3)));
+  
         if (animationRef.current) {
           animationRef.current.pause();
         }
+  
         animationRef.current = anime({
           targets: panel,
           translateX: newX - rect.left,
           translateY: newY - rect.top,
           rotateZ: newRotation,
-          easing: "linear",
+          easing: "easeInOutQuad",
           duration: Math.random() * 2000 + 4000,
           delay: hasStarted.current ? 0 : 5000,
           loop: false,
-          update: (): void => {
+          update: () => {
             if (isHovered || isDragging) {
               animationRef.current?.pause();
             }
           },
-          complete: (): void => {
+          complete: () => {
+            // Store the last transform values for accurate drag calculations
+            setTransformOffset({ x: newX - rect.left, y: newY - rect.top });
+  
             hasStarted.current = true;
             if (!isHovered && !isDragging) {
               animateFloating();
@@ -315,7 +480,9 @@ const Panel: React.FC<PanelProps> = ({
           }
         });
       };
+  
       animateFloating();
+  
       return () => {
         if (animationRef.current) {
           animationRef.current.pause();
@@ -323,6 +490,9 @@ const Panel: React.FC<PanelProps> = ({
       };
     }
   }, [isHovered, isDragging]);
+  
+  
+
 
   useEffect(() => {
     if (isHovered) {
@@ -334,12 +504,15 @@ const Panel: React.FC<PanelProps> = ({
         scale: 1.05,
         duration: 100,
         easing: "easeOutQuad",
-        complete: (): void => setIsScalingAnimationComplete(true)
+        complete: (): void => {
+          setIsScalingAnimationComplete(true);
+        }
       });
     }
   }, [isHovered]);
 
   const maxSize: number = Math.max(size.height, size.width);
+
 
   return (
     <div
@@ -367,7 +540,14 @@ const Panel: React.FC<PanelProps> = ({
           {children}
         </div>
       </div>
-      <div ref={dragZoneRef} className={styles.dragZone} onMouseDown={handleMouseDown} />
+        <div
+          ref={dragZoneRef}
+          className={styles.dragZone}
+          onMouseDown={handleMouseDown}
+          onTouchStart={handleTouchStart}
+          style={{ touchAction: "none" }}  
+        />
+
       {connectedHref !== "/" && (
         <button
           ref={closeButtonRef}
