@@ -353,30 +353,48 @@ const Panel: React.FC<PanelProps> = ({
     });
   };
   function updatePanelPosition(
-    panel: HTMLDivElement,
-    x: number,
-    y: number,
+    panel: HTMLDivElement, 
+    x: number, 
+    y: number, 
     offset: { x: number; y: number }
   ): void {
-    const rect = panel.getBoundingClientRect();
-
+    const computedStyle = window.getComputedStyle(panel);
+    
+    // Extract current `left` and `top` values
+    const currentLeft = parseFloat(panel.style.left) || 0;
+    const currentTop = parseFloat(panel.style.top) || 0;
+  
+    // 🔥 Extract the scale factor (same as handleMouseDown)
     const scale = 1.05;
-
+  
+    // 🔥 Compute the new target position based on drag movement
     const newX = x - offset.x;
     const newY = y - offset.y;
-
-    const minX = 0;
-    const maxX = window.innerWidth - rect.width;
-    const minY = 0;
-    const maxY = window.innerHeight - rect.height;
-
+  
+    // 🔥 Compute scaled panel size
+    const scaledWidth = panel.offsetWidth * scale;
+    const scaledHeight = panel.offsetHeight * scale;
+  
+    // 🔥 Compute viewport boundaries (corrected)
+    const widthOffset = (scaledWidth - panel.offsetWidth) / 2;
+    const heightOffset = (scaledHeight - panel.offsetHeight) / 2;
+    
+    const minX = 0 + widthOffset;
+    const maxX = window.innerWidth - scaledWidth + widthOffset; // ✅ Fix: Use scaledWidth
+    const minY = 0 + heightOffset;
+    const maxY = window.innerHeight - scaledHeight + heightOffset; // ✅ Fix: Use scaledHeight
+  
+    // 🔥 Restrict the new position within viewport boundaries
     const clampedX = Math.min(maxX, Math.max(minX, newX));
     const clampedY = Math.min(maxY, Math.max(minY, newY));
-
+  
+    // 🔥 Apply new position (NO MORE getBoundingClientRect())
     panel.style.left = `${clampedX}px`;
     panel.style.top = `${clampedY}px`;
-    panel.style.transform = `scale(${scale})`;
+    panel.style.transform = `scale(${scale})`; // Maintain scale while dragging
   }
+  
+  
 
   useEffect(() => {
     if (isDragging && panelRef.current) {
