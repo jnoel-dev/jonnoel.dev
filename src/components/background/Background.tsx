@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useEffect } from "react";
-import styles from "./background.module.css";
-import DitheredBackground from "./ditheredBackground";
+import styles from "./Background.module.css";
+import DitheredBackground from "./DitheredBackground";
 import resolveConfig from "tailwindcss/resolveConfig";
 import tailwindConfig from "../../../tailwind.config";
 import * as fabric from "fabric";

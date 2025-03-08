@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useEffect, useRef } from "react";
-import { useGlobalComponents } from "../../components/globalComponentsContext/globalComponentsContext";
-import AboutPanel from "../../components/pagePanels/aboutPanel";
+import { useGlobalComponents } from "../../components/globalComponentsContext/GlobalComponentsContext";
+import AboutPanel from "../../components/pagePanels/AboutPanel";
 
 export default function AboutPage() {
   const { addComponent, removeComponent, shouldRemoveComponent } = useGlobalComponents();

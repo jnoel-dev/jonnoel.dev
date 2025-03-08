@@ -2,11 +2,11 @@
 
 import anime from "animejs";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import styles from "./panel.module.css";
+import styles from "./Panel.module.css";
 import resolveConfig from "tailwindcss/resolveConfig";
 import tailwindConfig from "../../../tailwind.config";
 import { useRouter } from "next/navigation";
-import { useGlobalComponents } from "../globalComponentsContext/globalComponentsContext";
+import { useGlobalComponents } from "../globalComponentsContext/GlobalComponentsContext";
 
 const isMobile =
   typeof window !== "undefined" && /Mobi|Android/i.test(navigator.userAgent);

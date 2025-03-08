@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import styles from "./winButton.module.css";
 import { useRouter } from "next/navigation";
-import { useGlobalComponents } from "../globalComponentsContext/globalComponentsContext";
+import { useGlobalComponents } from "../globalComponentsContext/GlobalComponentsContext";
 import anime from "animejs";
 
 interface WinButtonProps {

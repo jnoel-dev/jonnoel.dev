@@ -1,7 +1,7 @@
 import React from "react";
-import Panel from "../panel/panel";
-import WinButton from "../winButton/winButton";
-import TitleBar from "../titlebar/titlebar";
+import Panel from "../panel/Panel";
+import WinButton from "../winButton/WinButton";
+import TitleBar from "../titlebar/Titlebar";
 
 interface HomePanelProps {
   panelId: string;

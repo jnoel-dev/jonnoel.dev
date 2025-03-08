@@ -1,9 +1,9 @@
 
 import "../global.css";
-import HomePanel from "../components/pagePanels/homePanel";
-import { GlobalComponentsProvider } from "../components/globalComponentsContext/globalComponentsContext";
-import Background from "../components/background/background";
-import UnderConstructionPanel from "../components/pagePanels/underContructionPanel";
+import HomePanel from "../components/pagePanels/HomePanel";
+import { GlobalComponentsProvider } from "../components/globalComponentsContext/GlobalComponentsContext";
+import Background from "../components/background/Background";
+import UnderConstructionPanel from "../components/pagePanels/UnderContructionPanel";
 
 // import UnderContructionPanel from "../components/homePanel/underContructionPanel";
 

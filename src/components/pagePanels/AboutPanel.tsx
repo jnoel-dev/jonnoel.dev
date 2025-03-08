@@ -1,6 +1,6 @@
 import React from "react";
-import Panel from "../panel/panel";
-import TitleBar from "../titlebar/titlebar";
+import Panel from "../panel/Panel";
+import TitleBar from "../titlebar/Titlebar";
 
 interface AboutPanelProps {
   panelId: string;
