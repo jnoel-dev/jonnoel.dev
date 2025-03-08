@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useEffect } from "react";
 import styles from "./background.module.css";
 import DitheredBackground from "./ditheredBackground";
@@ -16,7 +18,7 @@ const fullConfig = resolveConfig(tailwindConfig) as {
   };
 };
 
-const Background: React.FC<BackgroundProps> = ({ children }) => {
+export default function Background({ children }: BackgroundProps) {
   useEffect(() => {
     const STAR_MIN_SCALE = .5;
     const STAR_COUNT = 100;
@@ -231,4 +233,4 @@ const Background: React.FC<BackgroundProps> = ({ children }) => {
   );
 };
 
-export default Background;
+

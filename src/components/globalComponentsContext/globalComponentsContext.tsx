@@ -1,3 +1,5 @@
+'use client'
+
 import React, { createContext, useContext, useState, useRef } from "react";
 
 interface GlobalComponentEntry {
@@ -16,7 +18,7 @@ interface GlobalComponentsContextType {
 const GlobalComponentsContext = createContext<GlobalComponentsContextType | undefined>(undefined);
 
 interface GlobalComponentsProviderProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 export function GlobalComponentsProvider({ children }: GlobalComponentsProviderProps): React.JSX.Element {
@@ -25,8 +27,11 @@ export function GlobalComponentsProvider({ children }: GlobalComponentsProviderP
   const [shouldRemoveComponent, setShouldRemoveComponent] = useState<boolean>(false);
 
   const addComponent = (id: string, component: React.ReactNode): void => {
-    if (!panelRefs.current.has(id)) {
-      setComponents((prev) => [
+    setComponents((prev) => {
+      // ✅ Prevent duplicate entries by checking if ID already exists in state
+      if (prev.some((c) => c.id === id)) return prev;
+
+      return [
         ...prev,
         {
           id,
@@ -36,8 +41,8 @@ export function GlobalComponentsProvider({ children }: GlobalComponentsProviderP
             </div>
           ),
         },
-      ]);
-    }
+      ];
+    });
   };
 
   const removeComponent = (id: string): void => {

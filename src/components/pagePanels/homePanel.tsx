@@ -3,9 +3,12 @@ import Panel from "../panel/panel";
 import WinButton from "../winButton/winButton";
 import TitleBar from "../titlebar/titlebar";
 
-const HomePanel: React.FC = (): React.JSX.Element => {
+interface HomePanelProps {
+  panelId: string;
+}
+export default function HomePanel({ panelId }: HomePanelProps) {
   return (
-    <Panel width="auto" height="auto" connectedHref="/" panelId="home">
+    <Panel width="auto" height="auto" connectedHref="/" panelId={panelId}>
       <TitleBar title="w e l c o m e" />
       <div className="flex items-center justify-center gap-2 p-2">
         <WinButton href="/about" connectedPanelId="about">
@@ -17,6 +20,4 @@ const HomePanel: React.FC = (): React.JSX.Element => {
       <TitleBar title="⋆⋅☆⋅⋆" />
     </Panel>
   );
-};
-
-export default HomePanel;
+}

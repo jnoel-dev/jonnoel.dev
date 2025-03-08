@@ -1,9 +1,11 @@
+'use client'
+
 import anime from "animejs";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import styles from "./panel.module.css";
 import resolveConfig from "tailwindcss/resolveConfig";
 import tailwindConfig from "../../../tailwind.config";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useGlobalComponents } from "../globalComponentsContext/globalComponentsContext";
 
 const isMobile =
@@ -38,14 +40,8 @@ interface GlobalComponentsContextType {
   setShouldRemoveComponent: (value: boolean) => void;
 }
 
-const Panel: React.FC<PanelProps> = ({
-  height,
-  width,
-  children,
-  bgcolor = "globalColor1",
-  connectedHref,
-  panelId,
-}) => {
+
+export default function Panel({ height,width,children,bgcolor = "globalColor1",connectedHref,panelId }: PanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const dragZoneRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -573,4 +569,4 @@ const Panel: React.FC<PanelProps> = ({
   );
 };
 
-export default Panel;
+

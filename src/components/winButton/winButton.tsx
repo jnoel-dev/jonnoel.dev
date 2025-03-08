@@ -1,6 +1,7 @@
+'use client'
 import React, { useState } from "react";
 import styles from "./winButton.module.css";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useGlobalComponents } from "../globalComponentsContext/globalComponentsContext";
 import anime from "animejs";
 
@@ -11,7 +12,7 @@ interface WinButtonProps {
   connectedPanelId?: string;
 }
 
-const WinButton: React.FC<WinButtonProps> = ({ children, href, onClick, connectedPanelId }) => {
+export default function WinButton({ children, href, onClick, connectedPanelId  }: WinButtonProps) {
   const [isPressed, setIsPressed] = useState<boolean>(false);
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
   const [isDisabled, setIsDisabled] = useState<boolean>(false);
@@ -25,6 +26,7 @@ const WinButton: React.FC<WinButtonProps> = ({ children, href, onClick, connecte
     if (onClick) {
       onClick();
     } else if (href) {
+      console.log("pushing")
       router.push(href);
     }
     if (connectedPanelId) {
@@ -71,4 +73,4 @@ const WinButton: React.FC<WinButtonProps> = ({ children, href, onClick, connecte
   );
 };
 
-export default WinButton;
+

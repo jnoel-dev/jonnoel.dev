@@ -1,4 +1,5 @@
-// GifCard.tsx
+'use client'
+
 import React, { useEffect, useRef, useState } from "react";
 import anime from "animejs";
 
@@ -41,7 +42,7 @@ function useImageDimensions(imgRef: React.RefObject<HTMLImageElement>) {
   return dimensions;
 }
 
-const GifCard: React.FC<GifCardProps> = ({ gifUrl, alt = "GIF Card", scale = 1.0 }) => {
+export default function GifCard({  gifUrl, alt = "GIF Card", scale = 1.0  }: GifCardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null!);
@@ -122,4 +123,4 @@ const GifCard: React.FC<GifCardProps> = ({ gifUrl, alt = "GIF Card", scale = 1.0
   );
 };
 
-export default GifCard;
+

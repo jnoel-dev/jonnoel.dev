@@ -72,7 +72,7 @@ function FullscreenPlane(): React.JSX.Element {
   );
 }
 
-export default function DitheredBackground(): React.JSX.Element {
+export default function DitheredBackground(){
   return (
     <Canvas
       orthographic
