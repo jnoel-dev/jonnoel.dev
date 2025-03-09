@@ -1,7 +1,13 @@
-'use client'
+"use client";
 
 import anime from "animejs";
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useCallback,
+} from "react";
 import styles from "./Panel.module.css";
 import resolveConfig from "tailwindcss/resolveConfig";
 import tailwindConfig from "../../../tailwind.config";
@@ -40,8 +46,14 @@ interface GlobalComponentsContextType {
   setShouldRemoveComponent: (value: boolean) => void;
 }
 
-
-export default function Panel({ height,width,children,bgcolor = "globalColor1",connectedHref,panelId }: PanelProps) {
+export default function Panel({
+  height,
+  width,
+  children,
+  bgcolor = "globalColor1",
+  connectedHref,
+  panelId,
+}: PanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const dragZoneRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -63,15 +75,17 @@ export default function Panel({ height,width,children,bgcolor = "globalColor1",c
   const bgColorValue = fullConfig.theme.colors[bgcolor];
   const hasStarted = useRef<boolean>(false);
   const router = useRouter();
+  const [, setTransformOffset] = useState({ x: 0, y: 0 });
+  const removalInitiated = useRef(false);
   const { removeComponent, setShouldRemoveComponent } =
     useGlobalComponents() as GlobalComponentsContextType;
   const panelResetTimeout = 5000;
   const [isPageLoaded, setIsPageLoaded] = useState<boolean>(false);
-  const [transformOffset, setTransformOffset] = useState({ x: 0, y: 0 });
   const [globalViewport, setGlobalViewport] = useState<{
     width: number;
     height: number;
   } | null>(null);
+
 
   useEffect(() => {
     if (!isPageLoaded) {
@@ -80,6 +94,7 @@ export default function Panel({ height,width,children,bgcolor = "globalColor1",c
   }, [isPageLoaded]);
 
   const adjustedOpeningDelay = isFirstRenderAfterRefresh ? 2000 : 100;
+  const initialDelayRef = useRef(adjustedOpeningDelay);
 
   useEffect(() => {
     if (isPageLoaded) {
@@ -141,55 +156,21 @@ export default function Panel({ height,width,children,bgcolor = "globalColor1",c
     };
   }, []);
 
-  useEffect(() => {
-    if (!panelRef.current) return;
-    const handleAnimationComplete = (event: CustomEvent): void => {
-      if (panelRef.current === event.detail) {
-        setIsHovered(true);
-        setTimeout((): void => {
-          forceCheckMouseOver();
-        }, panelResetTimeout);
+  const centerPanel = useCallback(
+    (viewportWidth: number, viewportHeight: number) => {
+      if (!panelRef.current) return;
+      const rect = panelRef.current.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) {
+        setTimeout(() => centerPanel(viewportWidth, viewportHeight), 50);
+        return;
       }
-    };
-    window.addEventListener(
-      "panelForcedCenter",
-      handleAnimationComplete as EventListener
-    );
-    return () => {
-      window.removeEventListener(
-        "panelForcedCenter",
-        handleAnimationComplete as EventListener
-      );
-    };
-  }, []);
-
-  const forceCheckMouseOver = (): void => {
-    if (!panelRef.current) return;
-    const { x: mouseX, y: mouseY } = mousePositionRef.current;
-    const hoveredElement = document.elementFromPoint(mouseX, mouseY);
-    if (hoveredElement && panelRef.current.contains(hoveredElement)) {
-      handleMouseEnter();
-    } else {
-      handleMouseLeave();
-    }
-  };
-
-  const centerPanel = (viewportWidth: number, viewportHeight: number) => {
-    if (!panelRef.current) return;
-
-    let rect = panelRef.current.getBoundingClientRect();
-
-    if (rect.width === 0 || rect.height === 0) {
-      setTimeout(() => centerPanel(viewportWidth, viewportHeight), 50);
-      return;
-    }
-
-    let left = (viewportWidth - rect.width) / 2;
-    let top = (viewportHeight - rect.height) / 2;
-
-    panelRef.current.style.left = `${left}px`;
-    panelRef.current.style.top = `${top}px`;
-  };
+      const left = (viewportWidth - rect.width) / 2;
+      const top = (viewportHeight - rect.height) / 2;
+      panelRef.current.style.left = `${left}px`;
+      panelRef.current.style.top = `${top}px`;
+    },
+    [panelRef]
+  );
 
   useLayoutEffect(() => {
     if (!panelRef.current) return;
@@ -217,41 +198,18 @@ export default function Panel({ height,width,children,bgcolor = "globalColor1",c
         centerPanel(window.innerWidth, window.innerHeight)
       );
     };
-  }, [globalViewport]);
+  }, [globalViewport, centerPanel]);
 
-  useLayoutEffect(() => {
-    if (!panelRef.current) return;
-
-    const animation = anime({
-      targets: panelRef.current,
-      clipPath: ["inset(0% 0% 100% 0%)", "inset(0% 0% 0% 0%)"],
-      easing: "easeOutExpo",
-      duration: 800,
-      delay: adjustedOpeningDelay,
-      complete: () => {
-        isClippingAnimationCompleteRef.current = true;
-        setIsHovered(true);
-        setTimeout(() => {
-          forceCheckMouseOver();
-        }, panelResetTimeout);
-      },
-    });
-
-    return () => {
-      animation.pause();
-    };
-  }, []);
-
-  const handleMouseEnter = (): void => {
+  const handleMouseEnter = useCallback((): void => {
     if (
       !isClippingAnimationCompleteRef.current ||
       panelRef.current?.dataset.isMovingToCenter === "true"
     )
       return;
     setIsHovered(true);
-  };
+  }, [setIsHovered]);
 
-  const handleMouseLeave = (): void => {
+  const handleMouseLeave = useCallback((): void => {
     if (panelRef.current && !isDragging && !isMobile) {
       anime({
         targets: panelRef.current,
@@ -266,7 +224,64 @@ export default function Panel({ height,width,children,bgcolor = "globalColor1",c
         },
       });
     }
-  };
+  }, [isDragging, setIsHovered]);
+
+  const forceCheckMouseOver = useCallback((): void => {
+    if (!panelRef.current) return;
+    const { x: mouseX, y: mouseY } = mousePositionRef.current;
+    const hoveredElement = document.elementFromPoint(mouseX, mouseY);
+    if (hoveredElement && panelRef.current.contains(hoveredElement)) {
+      handleMouseEnter();
+    } else {
+      handleMouseLeave();
+    }
+  }, [handleMouseEnter, handleMouseLeave]);
+
+  useEffect(() => {
+    if (!panelRef.current) return;
+    const handleAnimationComplete = (event: CustomEvent): void => {
+      if (panelRef.current === event.detail) {
+        setIsHovered(true);
+        setTimeout((): void => {
+          forceCheckMouseOver();
+        }, panelResetTimeout);
+      }
+    };
+    window.addEventListener(
+      "panelForcedCenter",
+      handleAnimationComplete as EventListener
+    );
+    return () => {
+      window.removeEventListener(
+        "panelForcedCenter",
+        handleAnimationComplete as EventListener
+      );
+    };
+  }, [forceCheckMouseOver]);
+
+  useLayoutEffect(() => {
+    if (isClippingAnimationCompleteRef.current) return;
+    if (!panelRef.current) return;
+    const animation = anime({
+      targets: panelRef.current,
+      clipPath: ["inset(0% 0% 100% 0%)", "inset(0% 0% 0% 0%)"],
+      easing: "easeOutExpo",
+      duration: 800,
+      delay: initialDelayRef.current,
+      complete: () => {
+        isClippingAnimationCompleteRef.current = true;
+        setIsHovered(true);
+        setTimeout(() => {
+          forceCheckMouseOver();
+        }, panelResetTimeout);
+      },
+    });
+
+    return () => {
+      animation.pause();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const updateOffset = (clientX: number, clientY: number) => {
     if (!panelRef.current) return;
@@ -319,17 +334,17 @@ export default function Panel({ height,width,children,bgcolor = "globalColor1",c
     updateOffset(touch.clientX, touch.clientY);
   };
 
-  const handleMouseUpCloseButton = (
-    e: React.MouseEvent<HTMLButtonElement>
-  ): void => {
+  const handleMouseUpCloseButton = useCallback((): void => {
+    if (removalInitiated.current) return;
+    removalInitiated.current = true;
+    console.log("handleClose invoked for panel", panelId);
     router.back();
-    setShouldRemoveComponent(true);
+    
     removeComponent(panelId);
-  };
+    setShouldRemoveComponent(true);
+  }, [panelId, router, setShouldRemoveComponent, removeComponent]);
 
-  const handleMouseEnterCloseButton = (
-    e: React.MouseEvent<HTMLButtonElement>
-  ): void => {
+  const handleMouseEnterCloseButton = (): void => {
     anime({
       targets: closeButtonRef.current,
       scale: 1.5,
@@ -338,9 +353,7 @@ export default function Panel({ height,width,children,bgcolor = "globalColor1",c
     });
   };
 
-  const handleMouseLeaveCloseButton = (
-    e: React.MouseEvent<HTMLButtonElement>
-  ): void => {
+  const handleMouseLeaveCloseButton = (): void => {
     anime({
       targets: closeButtonRef.current,
       scale: 1,
@@ -349,48 +362,33 @@ export default function Panel({ height,width,children,bgcolor = "globalColor1",c
     });
   };
   function updatePanelPosition(
-    panel: HTMLDivElement, 
-    x: number, 
-    y: number, 
+    panel: HTMLDivElement,
+    x: number,
+    y: number,
     offset: { x: number; y: number }
   ): void {
-    const computedStyle = window.getComputedStyle(panel);
-    
-    // Extract current `left` and `top` values
-    const currentLeft = parseFloat(panel.style.left) || 0;
-    const currentTop = parseFloat(panel.style.top) || 0;
-  
-    // 🔥 Extract the scale factor (same as handleMouseDown)
     const scale = 1.05;
-  
-    // 🔥 Compute the new target position based on drag movement
     const newX = x - offset.x;
     const newY = y - offset.y;
-  
-    // 🔥 Compute scaled panel size
+
     const scaledWidth = panel.offsetWidth * scale;
     const scaledHeight = panel.offsetHeight * scale;
-  
-    // 🔥 Compute viewport boundaries (corrected)
+
     const widthOffset = (scaledWidth - panel.offsetWidth) / 2;
     const heightOffset = (scaledHeight - panel.offsetHeight) / 2;
-    
+
     const minX = 0 + widthOffset;
-    const maxX = window.innerWidth - scaledWidth + widthOffset; // ✅ Fix: Use scaledWidth
+    const maxX = window.innerWidth - scaledWidth + widthOffset;
     const minY = 0 + heightOffset;
-    const maxY = window.innerHeight - scaledHeight + heightOffset; // ✅ Fix: Use scaledHeight
-  
-    // 🔥 Restrict the new position within viewport boundaries
+    const maxY = window.innerHeight - scaledHeight + heightOffset;
+
     const clampedX = Math.min(maxX, Math.max(minX, newX));
     const clampedY = Math.min(maxY, Math.max(minY, newY));
-  
-    // 🔥 Apply new position (NO MORE getBoundingClientRect())
+
     panel.style.left = `${clampedX}px`;
     panel.style.top = `${clampedY}px`;
-    panel.style.transform = `scale(${scale})`; // Maintain scale while dragging
+    panel.style.transform = `scale(${scale})`;
   }
-  
-  
 
   useEffect(() => {
     if (isDragging && panelRef.current) {
@@ -476,13 +474,12 @@ export default function Panel({ height,width,children,bgcolor = "globalColor1",c
             }
           },
           complete: () => {
-            setTransformOffset({ x: newX - rect.left, y: newY - rect.top });
-
             hasStarted.current = true;
             if (!isHovered && !isDragging) {
-              animateFloating();
+              setTimeout(animateFloating, 50);
             }
           },
+          
         });
       };
 
@@ -567,6 +564,4 @@ export default function Panel({ height,width,children,bgcolor = "globalColor1",c
       )}
     </div>
   );
-};
-
-
+}

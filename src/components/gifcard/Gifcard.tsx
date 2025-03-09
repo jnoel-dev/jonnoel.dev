@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client'
 
 import React, { useEffect, useRef, useState } from "react";
@@ -6,13 +7,9 @@ import anime from "animejs";
 interface GifCardProps {
   gifUrl: string;
   alt?: string;
-  /** The base scale of the image in actual layout (not just transform). Defaults to 1.0. */
   scale?: number;
 }
 
-/**
- * A helper hook to get the natural width/height of an <img> once it loads.
- */
 function useImageDimensions(imgRef: React.RefObject<HTMLImageElement>) {
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
@@ -20,7 +17,6 @@ function useImageDimensions(imgRef: React.RefObject<HTMLImageElement>) {
     const img = imgRef.current;
     if (!img) return;
 
-    // Handler for when the image finishes loading (or is already loaded).
     function handleLoad() {
       setDimensions({
         width: img.naturalWidth,
@@ -28,7 +24,6 @@ function useImageDimensions(imgRef: React.RefObject<HTMLImageElement>) {
       });
     }
 
-    // If it's already loaded, run immediately; otherwise, wait for "load".
     if (img.complete && img.naturalWidth) {
       handleLoad();
     } else {
@@ -46,14 +41,10 @@ export default function GifCard({  gifUrl, alt = "GIF Card", scale = 1.0  }: Gif
   const containerRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null!);
-
-  // Get the image's natural size after it loads.
   const { width } = useImageDimensions(imgRef);
 
-  // On first render or when "scale" changes, set the <img> physical width.
   useEffect(() => {
     if (imgRef.current && width > 0) {
-      // Physically resize the image so the bounding box is smaller/larger.
       imgRef.current.style.width = `${width * scale}px`;
     }
   }, [scale, width]);
@@ -68,11 +59,10 @@ export default function GifCard({  gifUrl, alt = "GIF Card", scale = 1.0  }: Gif
     const deltaX = x - centerX;
     const deltaY = y - centerY;
 
-    const maxRotate = 10; // degrees
+    const maxRotate = 10; 
     const rotateX = -((deltaY / centerY) * maxRotate);
     const rotateY = (deltaX / centerX) * maxRotate;
 
-    // Slight additional scale on hover (relative to the physically sized image).
     const hoverScale = 1.05;
 
     anime({
@@ -91,7 +81,6 @@ export default function GifCard({  gifUrl, alt = "GIF Card", scale = 1.0  }: Gif
       targets: cardRef.current,
       rotateX: 0,
       rotateY: 0,
-      // Return to scale 1.0 in transform terms (the image is already physically scaled).
       scale: 1,
       duration: 200,
       easing: "easeOutQuad",
@@ -100,7 +89,6 @@ export default function GifCard({  gifUrl, alt = "GIF Card", scale = 1.0  }: Gif
 
   return (
     <div
-      // The outer container with perspective, sized to fit its contents
       ref={containerRef}
       style={{
         perspective: "1000px",
@@ -116,7 +104,7 @@ export default function GifCard({  gifUrl, alt = "GIF Card", scale = 1.0  }: Gif
           willChange: "transform",
         }}
       >
-        {/* We physically scale this image in layout via the effect. */}
+        {}
         <img ref={imgRef} src={gifUrl} alt={alt} style={{ display: "block" }} />
       </div>
     </div>

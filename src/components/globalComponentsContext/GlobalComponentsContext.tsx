@@ -47,6 +47,7 @@ export function GlobalComponentsProvider({ children }: GlobalComponentsProviderP
 
   const removeComponent = (id: string): void => {
     setComponents((prev) => prev.filter((c) => c.id !== id));
+    console.log("removing")
     panelRefs.current.delete(id);
   };
 

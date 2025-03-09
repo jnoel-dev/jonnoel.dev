@@ -48,7 +48,7 @@ export default function Background({ children }: BackgroundProps) {
       ty: number;
       z: number;
     }
-    let velocity: Velocity = { x: 0, y: 0, tx: 0, ty: 0, z: 0 };
+    const velocity: Velocity = { x: 0, y: 0, tx: 0, ty: 0, z: 0 };
 
     let touchInput = false;
     let imagesDoneLoading = false;

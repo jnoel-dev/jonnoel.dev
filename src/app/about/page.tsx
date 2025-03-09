@@ -8,6 +8,8 @@ export default function AboutPage() {
   const { addComponent, removeComponent, shouldRemoveComponent } = useGlobalComponents();
   const panelId: string = "about";
   const shouldRemoveComponentRef = useRef<boolean>(shouldRemoveComponent);
+  const removalInitiated = useRef(false);
+  const addingInitiated = useRef(false);
 
 
   useEffect(() => {
@@ -15,18 +17,21 @@ export default function AboutPage() {
   }, [shouldRemoveComponent]);
 
   useEffect(() => {
-
-    addComponent(
-      panelId,
-      <AboutPanel panelId={panelId} />
-    );
-
+    if (!addingInitiated.current){
+      addingInitiated.current = true;
+      addComponent(panelId, <AboutPanel panelId={panelId} />);
+    }
+    
+  
     return () => {
-      if (shouldRemoveComponentRef.current) {
+      if (!removalInitiated.current && shouldRemoveComponentRef.current) {
+        removalInitiated.current = true;
+        addingInitiated.current = false;
         removeComponent(panelId);
       }
     };
-  }, []);
+  }, [addComponent, removeComponent, panelId]);
+  
 
   return;
 };

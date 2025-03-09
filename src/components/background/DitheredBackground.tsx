@@ -8,6 +8,7 @@ import tailwindConfig from "../../../tailwind.config";
 
 extend({ DitherMaterial });
 
+/* eslint-disable @typescript-eslint/no-namespace */
 declare global {
   namespace React.JSX {
     interface IntrinsicElements {
@@ -15,8 +16,9 @@ declare global {
     }
   }
 }
+/* eslint-enable @typescript-eslint/no-namespace */
 
-interface DitherMaterialUniforms extends Record<string, THREE.IUniform<any>> {
+interface DitherMaterialUniforms extends Record<string, THREE.IUniform<unknown>> {
   time: { value: number };
   resolution: { value: THREE.Vector2 };
   mousePosition: { value: THREE.Vector2 };

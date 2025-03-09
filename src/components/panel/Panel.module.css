@@ -2,11 +2,10 @@
   width: auto;
   height: auto;
   margin: 0;
-  position: absolute; /* Allows free movement */
+  position: absolute; 
   display: flex;
   justify-content: center;
   align-items: center;
-  /* clip-path: inset(0% 0% 100% 0%); */
   overflow: hidden;
 
   top: 50%;

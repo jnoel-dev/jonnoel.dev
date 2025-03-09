@@ -1,14 +1,12 @@
 import * as fabric from "fabric";
 
-type LoadImageOptions = {
-  crossOrigin?: string | null;
-  signal?: AbortSignal;
-};
-
 export class Sprite extends fabric.Image {
   get type(): string {
     return "sprite";
   }
+
+  // Declare the static property with the appropriate type
+  static async: boolean = true;
 
   spriteWidth: number = 64;
   spriteHeight: number = 64;
@@ -25,7 +23,6 @@ export class Sprite extends fabric.Image {
     element: HTMLImageElement,
     options: Partial<fabric.ImageProps> = {}
   ) {
-
     options.width = options.width || 64;
     options.height = options.height || 64;
     super(element, options);
@@ -100,13 +97,8 @@ export class Sprite extends fabric.Image {
     const crossOrigin =
       options && options.crossOrigin === null ? undefined : options?.crossOrigin;
     const fabricOptions = { crossOrigin } as { crossOrigin?: "anonymous" | "use-credentials" };
-  
+
     return fabric.util.loadImage(url, fabricOptions)
       .then((img: HTMLImageElement) => new Sprite(img, imageOptions));
   }
-  
-  
-  
 }
-
-(Sprite as any).async = true;

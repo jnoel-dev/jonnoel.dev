@@ -1,12 +1,9 @@
-
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import "../global.css";
-import HomePanel from "../components/pagePanels/HomePanel";
+// import HomePanel from "../components/pagePanels/HomePanel";
 import { GlobalComponentsProvider } from "../components/globalComponentsContext/GlobalComponentsContext";
 import Background from "../components/background/Background";
 import UnderConstructionPanel from "../components/pagePanels/UnderContructionPanel";
-
-// import UnderContructionPanel from "../components/homePanel/underContructionPanel";
-
 
 export default function RootLayout({
   children,

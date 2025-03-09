@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from "react";
-import styles from "./winButton.module.css";
+import styles from "./WinButton.module.css";
 import { useRouter } from "next/navigation";
 import { useGlobalComponents } from "../globalComponentsContext/GlobalComponentsContext";
 import anime from "animejs";
@@ -26,7 +26,6 @@ export default function WinButton({ children, href, onClick, connectedPanelId  }
     if (onClick) {
       onClick();
     } else if (href) {
-      console.log("pushing")
       router.push(href);
     }
     if (connectedPanelId) {
